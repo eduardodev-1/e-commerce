@@ -19,4 +19,20 @@
 
 # Go workspace file
 go.work
-go.work.sum
+
+# Other
+/.idea
+/build
+# Ignorar arquivos gerados
+*.log
+*.pot
+*.pyc
+*.swp
+*.bak
+
+# Ignorar diretório de dependências
+/vendor/
+
+# Ignorar arquivo .env
+.env
+/env
