@@ -1,19 +1,23 @@
 package routes
 
 import (
-	"github.com/eduardodev-1/e-commerce/internal/controller"
+	"e-commerce/internal/controller"
 	"github.com/gofiber/fiber/v2"
 )
 
-func SetupPublicRoutes(app *fiber.App, allControllers *controller.Controllers) {
+func PublicRoutes(app *fiber.App, allControllers *controller.Controllers) {
 	v1 := app.Group("/v1")
 	login := v1.Group("/login")
 	{
 		login.Post("/submit", allControllers.LoginController.Autenticate)
 	}
+	product := v1.Group("/product")
+	{
+		product.Get("/", allControllers.ProductController.GetPaginatedList)
+	}
 }
 
-func SetupPrivateRoutes(app *fiber.App, allControllers *controller.Controllers) {
+func PrivateRoutes(app *fiber.App, allControllers *controller.Controllers) {
 	v1 := app.Group("/v1")
 	_ = v1.Group("/usuario")
 	{

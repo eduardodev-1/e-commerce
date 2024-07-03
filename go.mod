@@ -1,4 +1,4 @@
-module github.com/eduardodev-1/e-commerce
+module e-commerce
 
 go 1.22
 

@@ -1,9 +1,10 @@
 package controller
 
 import (
-	"github.com/eduardodev-1/e-commerce/internal/auth"
-	"github.com/eduardodev-1/e-commerce/internal/models"
-	"github.com/eduardodev-1/e-commerce/internal/services"
+	"e-commerce/internal/auth"
+	"e-commerce/internal/models"
+	"e-commerce/internal/services"
+	"fmt"
 	"github.com/go-oauth2/oauth2/v4"
 
 	"github.com/gofiber/fiber/v2"
@@ -26,7 +27,7 @@ func (h *LoginController) Autenticate(c *fiber.Ctx) error {
 		return err
 	}
 
-	loginRequest := new(models.LoginRequest)
+	loginRequest := new(models.RequestCredentials)
 	if err = c.BodyParser(loginRequest); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
@@ -55,6 +56,7 @@ func (h *LoginController) Autenticate(c *fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
+	fmt.Println(roles)
 	// Criar JWToken
 	token, err := auth.NewJWToken(user.Id, user.Username, roles)
 	if err != nil {

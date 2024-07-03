@@ -1,8 +1,8 @@
 package utils
 
 import (
+	"e-commerce/internal/models"
 	"errors"
-	"github.com/eduardodev-1/e-commerce/internal/models"
 	"gopkg.in/encoder.v1"
 )
 

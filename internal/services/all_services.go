@@ -1,17 +1,17 @@
 package services
 
 import (
-	"github.com/eduardodev-1/e-commerce/internal/repositories"
+	"e-commerce/internal/repositories"
 )
 
 type Services struct {
-	UsuarioService UsuarioService
+	UserService    UsuarioService
+	ProductService ProductService
 }
 
 func NewServices(allRepositories *repositories.Repositories) *Services {
 	return &Services{
-		UsuarioService: NewUsuarioService(
-			allRepositories.UsuarioRepository,
-		),
+		UserService:    NewUserService(allRepositories.UserRepository),
+		ProductService: NewProductService(allRepositories.ProductRepository),
 	}
 }

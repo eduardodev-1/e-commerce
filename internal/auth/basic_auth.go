@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
-	"fmt"
 	"math/big"
 	"os"
 	"strings"
@@ -14,7 +13,6 @@ import (
 )
 
 func CheckAppCredentials(c *fiber.Ctx) error {
-	fmt.Println("CheckAppCredentials")
 	// Get authorization header
 	auth := c.Get(fiber.HeaderAuthorization)
 

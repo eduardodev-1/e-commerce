@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"github.com/eduardodev-1/e-commerce/internal/auth"
+	"e-commerce/internal/auth"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -44,6 +44,5 @@ func AuthMiddleware(c *fiber.Ctx) error {
 	// Token is valid, add user information to context
 	c.Locals("username", username)
 	c.Locals("authorities", authorities)
-
 	return c.Next()
 }

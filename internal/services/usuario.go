@@ -1,16 +1,16 @@
 package services
 
 import (
-	"github.com/eduardodev-1/e-commerce/internal/models"
-	"github.com/eduardodev-1/e-commerce/internal/repositories"
-	"github.com/eduardodev-1/e-commerce/internal/utils"
+	"e-commerce/internal/models"
+	"e-commerce/internal/repositories"
+	"e-commerce/internal/utils"
 )
 
 type UsuarioService struct {
-	UsuarioRepo repositories.UsuarioRepository
+	UsuarioRepo repositories.UserRepository
 }
 
-func NewUsuarioService(usuarioRepo repositories.UsuarioRepository) UsuarioService {
+func NewUserService(usuarioRepo repositories.UserRepository) UsuarioService {
 	return UsuarioService{
 		UsuarioRepo: usuarioRepo,
 	}
@@ -20,9 +20,9 @@ func (s *UsuarioService) GetUserRoles(username string) ([]string, error) {
 	return authorities, err
 
 }
-func (s *UsuarioService) Authenticate(credentials *models.LoginRequest) (*models.AuthenticatedUser, error) {
+func (s *UsuarioService) Authenticate(credentials *models.RequestCredentials) (*models.AuthenticatedUser, error) {
 
-	usuario, hashedPassword, err := s.UsuarioRepo.GetAuthenticationData(credentials.Username)
+	user, hashedPassword, err := s.UsuarioRepo.GetAuthenticationData(credentials.Username)
 	if err != nil {
 		return nil, err
 	}
@@ -34,5 +34,5 @@ func (s *UsuarioService) Authenticate(credentials *models.LoginRequest) (*models
 		return nil, err
 	}
 
-	return usuario, nil
+	return user, nil
 }

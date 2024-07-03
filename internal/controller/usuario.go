@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/eduardodev-1/e-commerce/internal/services"
+	"e-commerce/internal/services"
 )
 
 type UsuarioController struct {

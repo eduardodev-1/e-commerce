@@ -2,6 +2,7 @@ package database
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/jmoiron/sqlx"
@@ -38,5 +39,33 @@ func NewPsqlConn() (*sqlx.DB, error) {
 	if err != nil {
 		return nil, err
 	}
+	// Carregar e executar o script SQL
+	err = executeSQLFile("internal/database/schema.sql", db)
+	if err != nil {
+		log.Fatal("Failed to execute schema.sql:", err)
+	}
 	return db, nil
+}
+
+func executeSQLFile(filepath string, db *sqlx.DB) error {
+	file, err := os.ReadFile(filepath)
+	if err != nil {
+		return err
+	}
+	script := string(file)
+
+	tx, err := db.Beginx()
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(script)
+	if err != nil {
+		err = tx.Rollback()
+		if err != nil {
+			return err
+		}
+		return err
+	}
+	return tx.Commit()
 }

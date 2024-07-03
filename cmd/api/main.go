@@ -1,13 +1,13 @@
 package main
 
 import (
-	"github.com/eduardodev-1/e-commerce/internal/config"
-	"github.com/eduardodev-1/e-commerce/internal/controller"
-	"github.com/eduardodev-1/e-commerce/internal/database"
-	"github.com/eduardodev-1/e-commerce/internal/middleware"
-	"github.com/eduardodev-1/e-commerce/internal/repositories"
-	"github.com/eduardodev-1/e-commerce/internal/routes"
-	"github.com/eduardodev-1/e-commerce/internal/services"
+	"e-commerce/internal/config"
+	"e-commerce/internal/controller"
+	"e-commerce/internal/database"
+	"e-commerce/internal/middleware"
+	"e-commerce/internal/repositories"
+	"e-commerce/internal/routes"
+	"e-commerce/internal/services"
 	"log"
 	"os"
 )
@@ -27,9 +27,9 @@ func main() {
 	// Controllers
 	allControllers := controller.NewControllers(allServices)
 	// Routes
-	routes.SetupPublicRoutes(app, allControllers)
+	routes.PublicRoutes(app, allControllers)
 	app.Use(middleware.AuthMiddleware)
-	routes.SetupPrivateRoutes(app, allControllers)
+	routes.PrivateRoutes(app, allControllers)
 
 	PORT := os.Getenv("FIBER_PORT")
 	err = app.Listen(":" + PORT)
