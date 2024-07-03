@@ -5,15 +5,17 @@ import (
 )
 
 type Controllers struct {
-	UsuarioController UsuarioController
-	LoginController   LoginController
-	ProductController ProductController
+	UsuarioController  *UserController
+	LoginController    *LoginController
+	ProductController  *ProductController
+	DataBaseController *DataBaseController
 }
 
 func NewControllers(allServices *services.Services) *Controllers {
 	return &Controllers{
-		UsuarioController: NewUsuarioController(allServices.UserService),
-		LoginController:   NewLoginController(allServices.UserService),
-		ProductController: NewProductController(allServices.ProductService),
+		UsuarioController:  NewUsuarioController(allServices.UserService),
+		LoginController:    NewLoginController(allServices.UserService),
+		ProductController:  NewProductController(allServices.ProductService),
+		DataBaseController: NewDataBaseController(allServices.DataBaseService),
 	}
 }

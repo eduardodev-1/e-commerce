@@ -40,14 +40,14 @@ func NewPsqlConn() (*sqlx.DB, error) {
 		return nil, err
 	}
 	// Carregar e executar o script SQL
-	err = executeSQLFile("internal/database/schema.sql", db)
+	err = ExecuteSQLFile("internal/database/schema.sql", db)
 	if err != nil {
 		log.Fatal("Failed to execute schema.sql:", err)
 	}
 	return db, nil
 }
 
-func executeSQLFile(filepath string, db *sqlx.DB) error {
+func ExecuteSQLFile(filepath string, db *sqlx.DB) error {
 	file, err := os.ReadFile(filepath)
 	if err != nil {
 		return err

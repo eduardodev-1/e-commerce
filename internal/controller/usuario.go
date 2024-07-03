@@ -4,12 +4,12 @@ import (
 	"e-commerce/internal/services"
 )
 
-type UsuarioController struct {
-	UsuarioService services.UsuarioService
+type UserController struct {
+	UserService *services.UserService
 }
 
-func NewUsuarioController(usuarioSvc services.UsuarioService) UsuarioController {
-	return UsuarioController{
-		UsuarioService: usuarioSvc,
+func NewUsuarioController(userService *services.UserService) *UserController {
+	return &UserController{
+		UserService: userService,
 	}
 }

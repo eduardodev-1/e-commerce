@@ -7,7 +7,7 @@ import (
 
 type commonController struct{}
 
-func GetRequestParams(ctx *fiber.Ctx) *models.RequestParams {
+func (c *commonController) GetRequestParams(ctx *fiber.Ctx) *models.RequestParams {
 	requestParams := new(models.RequestParams)
 	requestParams.Number = ctx.QueryInt("page", 0)
 	requestParams.Size = ctx.QueryInt("size", 10)

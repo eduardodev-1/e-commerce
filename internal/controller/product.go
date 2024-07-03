@@ -8,12 +8,17 @@ import (
 
 type ProductController struct {
 	commonController
-	ProductService services.ProductService
+	ProductService *services.ProductService
 }
 
+func NewProductController(ProductSvc *services.ProductService) *ProductController {
+	return &ProductController{
+		ProductService: ProductSvc,
+	}
+}
 func (c ProductController) GetPaginatedList(ctx *fiber.Ctx) error {
 	var page = new(models.Page)
-	requestParams := GetRequestParams(ctx)
+	requestParams := c.GetRequestParams(ctx)
 	page, err := c.ProductService.GetPaginatedList(requestParams)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -21,10 +26,4 @@ func (c ProductController) GetPaginatedList(ctx *fiber.Ctx) error {
 		})
 	}
 	return ctx.JSON(page)
-}
-
-func NewProductController(ProductSvc services.ProductService) ProductController {
-	return ProductController{
-		ProductService: ProductSvc,
-	}
 }

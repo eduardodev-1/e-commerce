@@ -6,21 +6,21 @@ import (
 	"e-commerce/internal/utils"
 )
 
-type UsuarioService struct {
-	UsuarioRepo repositories.UserRepository
+type UserService struct {
+	UsuarioRepo *repositories.UserRepository
 }
 
-func NewUserService(usuarioRepo repositories.UserRepository) UsuarioService {
-	return UsuarioService{
+func NewUserService(usuarioRepo *repositories.UserRepository) *UserService {
+	return &UserService{
 		UsuarioRepo: usuarioRepo,
 	}
 }
-func (s *UsuarioService) GetUserRoles(username string) ([]string, error) {
+func (s *UserService) GetUserRoles(username string) ([]string, error) {
 	authorities, err := s.UsuarioRepo.GetAuthoritiesByUserName(username)
 	return authorities, err
 
 }
-func (s *UsuarioService) Authenticate(credentials *models.RequestCredentials) (*models.AuthenticatedUser, error) {
+func (s *UserService) Authenticate(credentials *models.RequestCredentials) (*models.AuthenticatedUser, error) {
 
 	user, hashedPassword, err := s.UsuarioRepo.GetAuthenticationData(credentials.Username)
 	if err != nil {

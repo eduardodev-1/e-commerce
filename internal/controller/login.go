@@ -12,11 +12,11 @@ import (
 )
 
 type LoginController struct {
-	UserService services.UsuarioService
+	UserService *services.UserService
 }
 
-func NewLoginController(userService services.UsuarioService) LoginController {
-	return LoginController{
+func NewLoginController(userService *services.UserService) *LoginController {
+	return &LoginController{
 		UserService: userService,
 	}
 }
