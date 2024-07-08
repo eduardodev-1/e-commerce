@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/gofiber/fiber/v2"
 	"math"
 )
 
@@ -13,14 +14,22 @@ type Page struct {
 	Sort          string      `json:"sort"`
 }
 type RequestParams struct {
-	Number int
-	Size   int
-	Sort   string
+	Number int    `query:"page"`
+	Size   int    `query:"size"`
+	Sort   string `query:"sort"`
 }
 type QueryParams struct {
 	Limit  int
 	Offset int
 	Order  string
+}
+
+func (p *Page) GetRequestParams(ctx *fiber.Ctx) *RequestParams {
+	requestParams := new(RequestParams)
+	requestParams.Number = ctx.QueryInt("page", 0)
+	requestParams.Size = ctx.QueryInt("size", 10)
+	requestParams.Sort = ctx.Query("sort", "id")
+	return requestParams
 }
 
 func (p *Page) GetQueryParams() *QueryParams {

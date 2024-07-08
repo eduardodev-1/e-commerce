@@ -14,6 +14,7 @@ func PublicRoutes(app *fiber.App, allControllers *controller.Controllers) {
 	product := v1.Group("/product")
 	{
 		product.Get("/", allControllers.ProductController.GetPaginatedList)
+		product.Get("/:id", allControllers.ProductController.Get)
 	}
 	dataBase := v1.Group("/database")
 	{

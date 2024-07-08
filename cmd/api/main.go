@@ -13,13 +13,13 @@ import (
 )
 
 func main() {
-	//InitialConfigs
-	app := config.GetFiberConfig()
 	// DB Connection
 	db, err := database.NewPsqlConn()
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+	//Initial Fiber Configs
+	app := config.GetFiberConfig()
 	// Repositories
 	allRepositories := repositories.NewRepositories(db)
 	// Services
