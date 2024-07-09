@@ -5,7 +5,7 @@ import (
 )
 
 type Controllers struct {
-	UsuarioController  *NewUserController
+	UsuarioController  *UserController
 	LoginController    *LoginController
 	ProductController  *ProductController
 	DataBaseController *DataBaseController
