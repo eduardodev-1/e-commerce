@@ -1,44 +1,69 @@
-# e-commerce
-BackEnd de um comércio online feito em Go. Neste projeto foi usado o routes-controller-service-repository-pattern, aqui está uma breve apresentação escrita por Jawad Shaikh.
-View profile for Jawad Shaikh, graphic
-Jawad Shaikh  3rd
-Backend Developer
+# Arquitetura do Backend do E-commerce
 
-10mo
- Follow
+Este documento descreve a arquitetura do backend de um projeto de e-commerce, detalhando o sistema de autenticação OAuth2, os tipos de usuários e suas permissões, e os fluxos de dados.
 
-The routes controller service repository pattern
+## Autenticação OAuth2
 
-This is a software design pattern that helps to decouple the different parts of a web application. It divides the application into three layers:
+### Fluxo de Autenticação
+- **Pedido de Autenticação**: O cliente envia um pedido de autenticação.
+- **Headers**: O pedido inclui o cabeçalho `Authorization: Basic Auth`.
+- **Corpo do Pedido**: O corpo do pedido contém `login` e `senha` no formato `x-www-form-urlencoded`.
+- **Servidor de Autenticação**: O servidor valida as credenciais e gera um JWT.
 
-Routes: The routes layer is responsible for handling incoming requests and routing them to the appropriate controller.
+## Usuários e Permissões
 
-Controllers: The controllers layer is responsible for processing the requests and calling the appropriate services.
+### SELLER
+- Pode postar produtos para vender.
+- Pode acompanhar suas vendas.
+- Pode deletar seus próprios produtos.
 
-Services: The services layer is responsible for accessing the data and performing the business logic.
+### CLIENT
+- Pode adicionar produtos ao carrinho.
+- Pode fazer compras.
+- Pode acompanhar suas próprias compras.
 
-Repositories: The repositories layer is responsible for storing and retrieving data from a persistent store, such as a database.
+### ADMIN
+- Acesso a todos os endpoints.
+- Pode deletar usuários e produtos.
 
-This pattern helps to improve the modularity and maintainability of the application. It also makes it easier to test the different parts of the application.
+## Fluxos de Dados
 
-Here is an example of how the routes controller service repository pattern can be used in a web application:
+### Endpoints Públicos
+- **Lista de produtos**: Disponível sem autenticação.
+- **Produto por ID**: Disponível sem autenticação.
 
-The routes layer would define a route for the /users endpoint.
+### Endpoints Privados
+- **Autenticação Requerida**: A maioria das rotas requer autenticação e está conectada a usuários específicos.
 
-The controller layer would have a method for handling requests to the /users endpoint. This method would call the getUsers() service.
+## Banco de Dados
 
-The getUsers() service would call the UsersRepository() to retrieve the list of users.
+### Produtos
+- Tabela que armazena informações sobre os produtos.
 
-The routes controller service repository pattern is a common pattern used in many web applications. It can help to improve the modularity, maintainability, and testability of the application.
+### Usuários
+- Tabela que armazena informações sobre os usuários e suas permissões.
 
-Here are some of the benefits of using the routes controller service repository pattern:
+### Pedidos
+- Tabela que armazena informações sobre as compras (orders) realizadas.
 
-Modularity: The application is divided into three layers, which makes it easier to understand and maintain.
+## Exemplo de Fluxo de Usuário
 
-Maintainability: The different parts of the application are decoupled, which makes it easier to change or update one part without affecting the others.
+### SELLER
+- Loga no sistema.
+- Posta um produto.
+- Acompanha vendas.
 
-Testability: The different parts of the application can be tested independently, which makes it easier to find and fix bugs.
+### CLIENT
+- Loga no sistema.
+- Adiciona produtos ao carrinho.
+- Faz uma compra.
+- Acompanha suas ordens.
 
-Scalability: The application can be scaled easily by adding more resources to each layer.
+### ADMIN
+- Loga no sistema.
+- Gerencia usuários e produtos.
+- Deleta conforme necessário.
 
-If you are developing a web application, I recommend using the routes controller service repository pattern. It is a well-established pattern that can help you to create a more maintainable and scalable application.
+---
+
+Este diagrama descreve a arquitetura do backend do sistema de e-commerce, com foco nas interações e permissões de diferentes tipos de usuários e no fluxo de autenticação.
