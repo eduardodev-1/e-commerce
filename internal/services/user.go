@@ -37,7 +37,7 @@ func (s *UserService) Authenticate(credentials *models.RequestCredentials) (*mod
 
 	return user, nil
 }
-func (s UserService) GetPaginatedList(requestParams *models.RequestParams, page *models.Page) (*models.Page, *fiber_error.ErrorParams) {
+func (s *UserService) GetPaginatedList(requestParams *models.RequestParams, page *models.Page) (*models.Page, *fiber_error.ErrorParams) {
 	page.SetRequestParams(requestParams)
 	queryParams := page.GetQueryParams()
 	content, count, errorParams := s.UserRepository.PageableFindAll(queryParams)
@@ -48,7 +48,7 @@ func (s UserService) GetPaginatedList(requestParams *models.RequestParams, page 
 	return page, nil
 }
 
-func (s UserService) Get(id int) (*models.User, *fiber_error.ErrorParams) {
+func (s *UserService) Get(id int) (*models.User, *fiber_error.ErrorParams) {
 	product, errorParams := s.UserRepository.GetById(id)
 	if errorParams != nil {
 		return nil, errorParams

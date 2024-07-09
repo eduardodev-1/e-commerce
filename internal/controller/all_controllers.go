@@ -5,7 +5,7 @@ import (
 )
 
 type Controllers struct {
-	UsuarioController  *UserController
+	UserController     *UserController
 	LoginController    *LoginController
 	ProductController  *ProductController
 	DataBaseController *DataBaseController
@@ -13,7 +13,7 @@ type Controllers struct {
 
 func NewControllers(allServices *services.Services) *Controllers {
 	return &Controllers{
-		UsuarioController:  NewUserController(allServices.UserService),
+		UserController:     NewUserController(allServices.UserService),
 		LoginController:    NewLoginController(allServices.UserService),
 		ProductController:  NewProductController(allServices.ProductService),
 		DataBaseController: NewDataBaseController(allServices.DataBaseService),
