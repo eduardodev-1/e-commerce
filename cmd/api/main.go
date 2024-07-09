@@ -13,20 +13,19 @@ import (
 )
 
 func main() {
-	// DB Connection
 	db, err := database.NewPsqlConn()
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	//Initial Fiber Configs
+
 	app := config.GetFiberConfig()
-	// Repositories
+
 	allRepositories := repositories.NewRepositories(db)
-	// Services
+
 	allServices := services.NewServices(allRepositories)
-	// Controllers
+
 	allControllers := controller.NewControllers(allServices)
-	// Routes
+
 	routes.PublicRoutes(app, allControllers)
 	app.Use(middleware.AuthMiddleware)
 	routes.PrivateRoutes(app, allControllers)

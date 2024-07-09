@@ -1,4 +1,3 @@
-BEGIN;
 DROP TABLE if exists tb_category;
 DROP TABLE if exists tb_order;
 DROP TABLE if exists tb_order_item;
@@ -8,4 +7,3 @@ DROP TABLE if exists tb_product_category;
 DROP TABLE if exists tb_role;
 DROP TABLE if exists tb_user;
 DROP TABLE if exists tb_user_role;
-COMMIT;

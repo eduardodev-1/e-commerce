@@ -7,28 +7,28 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-type ProductController struct {
-	ProductService *services.ProductService
+type UserController struct {
+	UserService *services.UserService
 }
 
-func NewProductController(ProductSvc *services.ProductService) *ProductController {
-	return &ProductController{
-		ProductService: ProductSvc,
+func NewUserController(userService *services.UserService) *UserController {
+	return &UserController{
+		UserService: userService,
 	}
 }
-func (c ProductController) GetPaginatedList(ctx *fiber.Ctx) error {
-	//por exemplo aqui
+func (c UserController) GetPaginatedList(ctx *fiber.Ctx) error {
+
 	fiberError := fiber_error.FiberCustomError{Ctx: ctx}
 	var page = new(models.Page)
 	requestParams := page.GetRequestParams(ctx)
-	page, errorParams := c.ProductService.GetPaginatedList(requestParams, page)
+	page, errorParams := c.UserService.GetPaginatedList(requestParams, page)
 	if errorParams != nil {
 		return fiberError.NewFiberError(errorParams)
 	}
 	return ctx.JSON(page)
 }
 
-func (c ProductController) Get(ctx *fiber.Ctx) error {
+func (c UserController) Get(ctx *fiber.Ctx) error {
 	fiberError := fiber_error.FiberCustomError{Ctx: ctx}
 	id, err := ctx.ParamsInt("id", 0)
 	if err != nil || id <= 0 {
@@ -37,7 +37,7 @@ func (c ProductController) Get(ctx *fiber.Ctx) error {
 		errorParams.Status = fiber.StatusBadRequest
 		return fiberError.NewFiberError(errorParams)
 	}
-	product, errorParams := c.ProductService.Get(id)
+	product, errorParams := c.UserService.Get(id)
 	if errorParams != nil {
 		return fiberError.NewFiberError(errorParams)
 	}

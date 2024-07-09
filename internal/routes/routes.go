@@ -16,22 +16,22 @@ func PublicRoutes(app *fiber.App, allControllers *controller.Controllers) {
 		product.Get("/", allControllers.ProductController.GetPaginatedList)
 		product.Get("/:id", allControllers.ProductController.Get)
 	}
-	dataBase := v1.Group("/database")
-	{
-		dataBase.Put("/restart", allControllers.DataBaseController.ResetDataBase)
-	}
 }
 
 func PrivateRoutes(app *fiber.App, allControllers *controller.Controllers) {
 	v1 := app.Group("/v1")
-	_ = v1.Group("/usuario")
+	dataBase := v1.Group("/database")
 	{
-		//u.Get("/", allControllers.UserController.List)
-		//u.Get("/create", allControllers.UserController.Create)
-		//u.Get("/:id", allControllers.UserController.Get)
-		//u.Post("/", allControllers.UserController.Save)
-		//u.Get("/edit/:id", allControllers.UserController.Edit)
-		//u.Put("/:id", allControllers.UserController.Update)
-		//u.Delete("/:id", allControllers.UserController.Delete)
+		dataBase.Put("/restart", allControllers.DataBaseController.ResetDataBase)
+	}
+	user := v1.Group("/user")
+	{
+		user.Get("/", allControllers.UserController.GetPaginatedList)
+		user.Get("/:id", allControllers.UserController.Get)
+	}
+	product := v1.Group("/product")
+	{
+		product.Get("/", allControllers.ProductController.GetPaginatedList)
+		product.Get("/:id", allControllers.ProductController.Get)
 	}
 }

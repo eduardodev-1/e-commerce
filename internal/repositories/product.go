@@ -60,8 +60,7 @@ func (r ProductRepository) GetById(id int) (*models.Product, *fiber_error.ErrorP
 func (r ProductRepository) Insert(product *models.Product) (*models.Product, *fiber_error.ErrorParams) {
 	var errorParams = new(fiber_error.ErrorParams)
 	query := `INSERT INTO tb_product (price, description, img_url, name, seller)
-	VALUES ($1, $2, $3, $4)
-	RETURNING id`
+	VALUES ($1, $2, $3, $4, $5) RETURNING id`
 	var id int
 	err := r.QueryRow(query, product.Price, product.Description, product.ImgURL).Scan(&id)
 	if err != nil {

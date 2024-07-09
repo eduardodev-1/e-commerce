@@ -4,7 +4,6 @@ import (
 	fiber_error "e-commerce/internal/error"
 	"e-commerce/internal/models"
 	"e-commerce/internal/repositories"
-	"log"
 )
 
 type ProductService struct {
@@ -17,22 +16,21 @@ func NewProductService(productRepository *repositories.ProductRepository) *Produ
 	}
 }
 
-func (s ProductService) GetPaginatedList(requestParams *models.RequestParams, page *models.Page) (*models.Page, error) {
-	var err error
+func (s ProductService) GetPaginatedList(requestParams *models.RequestParams, page *models.Page) (*models.Page, *fiber_error.ErrorParams) {
 	page.SetRequestParams(requestParams)
-	log.Print(page)
 	queryParams := page.GetQueryParams()
-	log.Print(queryParams)
-	content, count, err := s.ProductRepository.PageableFindAll(queryParams)
-	if err != nil {
-		return nil, err
+	content, count, errorParams := s.ProductRepository.PageableFindAll(queryParams)
+	if errorParams != nil {
+		return nil, errorParams
 	}
 	page.SetResultParams(content, count)
 	return page, nil
 }
 
 func (s ProductService) Get(id int) (*models.Product, *fiber_error.ErrorParams) {
-	product := s.ProductRepository.GetById(id)
-
-	return nil, nil
+	product, errorParams := s.ProductRepository.GetById(id)
+	if errorParams != nil {
+		return nil, errorParams
+	}
+	return product, nil
 }
