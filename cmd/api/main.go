@@ -1,38 +1,34 @@
 package main
 
 import (
-	"github.com/eduardodev-1/e-commerce/internal/config"
-	"github.com/eduardodev-1/e-commerce/internal/controller"
-	"github.com/eduardodev-1/e-commerce/internal/database"
-	"github.com/eduardodev-1/e-commerce/internal/middleware"
-	"github.com/eduardodev-1/e-commerce/internal/repositories"
-	"github.com/eduardodev-1/e-commerce/internal/routes"
-	"github.com/eduardodev-1/e-commerce/internal/services"
+	"e-commerce/internal/config"
+	"e-commerce/internal/core/services"
+	"e-commerce/internal/database/postgres"
+	"e-commerce/internal/handler"
+	"e-commerce/internal/middleware"
+	"e-commerce/internal/repositories"
+	"e-commerce/internal/routes"
 	"log"
 	"os"
 )
 
 func main() {
-	//InitialConfigs
-	app := config.GetFiberConfig()
-	// DB Connection
-	db, err := database.NewPsqlConn()
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	// Repositories
+	db := postgres.NewPsqlConn()
+
 	allRepositories := repositories.NewRepositories(db)
-	// Services
+
 	allServices := services.NewServices(allRepositories)
-	// Controllers
-	allControllers := controller.NewControllers(allServices)
-	// Routes
-	routes.SetupPublicRoutes(app, allControllers)
+
+	allHandlers := handler.NewHandlers(allServices)
+
+	app := config.GetFiberConfig()
+
+	routes.Public(app, allHandlers)
 	app.Use(middleware.AuthMiddleware)
-	routes.SetupPrivateRoutes(app, allControllers)
+	routes.Private(app, allHandlers)
 
 	PORT := os.Getenv("FIBER_PORT")
-	err = app.Listen(":" + PORT)
+	err := app.Listen(":" + PORT)
 	if err != nil {
 		log.Fatal(err.Error())
 		return

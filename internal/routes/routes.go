@@ -1,28 +1,33 @@
 package routes
 
 import (
-	"github.com/eduardodev-1/e-commerce/internal/controller"
+	"e-commerce/internal/handler"
 	"github.com/gofiber/fiber/v2"
 )
 
-func SetupPublicRoutes(app *fiber.App, allControllers *controller.Controllers) {
+func Public(app *fiber.App, allHandlers *handler.Handlers) {
 	v1 := app.Group("/v1")
 	login := v1.Group("/login")
 	{
-		login.Post("/submit", allControllers.LoginController.Autenticate)
+		login.Post("/submit", allHandlers.LoginHandler.Authenticate)
+	}
+	product := v1.Group("/product")
+	{
+		product.Get("/", allHandlers.ProductHandler.GetPaginatedList)
+		product.Get("/:id", allHandlers.ProductHandler.Get)
 	}
 }
 
-func SetupPrivateRoutes(app *fiber.App, allControllers *controller.Controllers) {
+func Private(app *fiber.App, allHandlers *handler.Handlers) {
 	v1 := app.Group("/v1")
-	_ = v1.Group("/usuario")
+	user := v1.Group("/user")
 	{
-		//u.Get("/", allControllers.UsuarioController.List)
-		//u.Get("/create", allControllers.UsuarioController.Create)
-		//u.Get("/:id", allControllers.UsuarioController.Get)
-		//u.Post("/", allControllers.UsuarioController.Save)
-		//u.Get("/edit/:id", allControllers.UsuarioController.Edit)
-		//u.Put("/:id", allControllers.UsuarioController.Update)
-		//u.Delete("/:id", allControllers.UsuarioController.Delete)
+		user.Get("/", allHandlers.UserHandler.GetPaginatedList)
+		user.Get("/:id", allHandlers.UserHandler.Get)
+	}
+	product := v1.Group("/product")
+	{
+		product.Get("/", allHandlers.ProductHandler.GetPaginatedList)
+		product.Get("/:id", allHandlers.ProductHandler.Get)
 	}
 }

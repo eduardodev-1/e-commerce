@@ -1,39 +1,40 @@
-package controller
+package handler
 
 import (
-	"github.com/eduardodev-1/e-commerce/internal/auth"
-	"github.com/eduardodev-1/e-commerce/internal/models"
-	"github.com/eduardodev-1/e-commerce/internal/services"
+	"e-commerce/internal/auth"
+	"e-commerce/internal/core/domain"
+	"e-commerce/internal/core/ports"
+	"fmt"
 	"github.com/go-oauth2/oauth2/v4"
 
 	"github.com/gofiber/fiber/v2"
 	_ "github.com/gofiber/fiber/v2/middleware/basicauth"
 )
 
-type LoginController struct {
-	UserService services.UsuarioService
+type LoginHandler struct {
+	UserService ports.UserService
 }
 
-func NewLoginController(userService services.UsuarioService) LoginController {
-	return LoginController{
+func NewLoginHandler(userService ports.UserService) *LoginHandler {
+	return &LoginHandler{
 		UserService: userService,
 	}
 }
 
-func (h *LoginController) Autenticate(c *fiber.Ctx) error {
+func (h *LoginHandler) Authenticate(c *fiber.Ctx) error {
 	err := auth.CheckAppCredentials(c)
 	if err != nil {
 		return err
 	}
 
-	loginRequest := new(models.LoginRequest)
+	loginRequest := new(domain.RequestCredentials)
 	if err = c.BodyParser(loginRequest); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
 
-	var user = new(models.AuthenticatedUser)
+	var user = new(domain.AuthenticatedUser)
 	grantType := oauth2.GrantType(loginRequest.GrantType)
 
 	switch grantType {
@@ -55,6 +56,7 @@ func (h *LoginController) Autenticate(c *fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
+	fmt.Println(roles)
 	// Criar JWToken
 	token, err := auth.NewJWToken(user.Id, user.Username, roles)
 	if err != nil {
@@ -63,7 +65,5 @@ func (h *LoginController) Autenticate(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"token": token,
-	})
+	return c.Status(fiber.StatusOK).JSON(domain.LoginResponse{Token: token})
 }

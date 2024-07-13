@@ -19,7 +19,7 @@ const (
 	duration = time.Hour * 24
 )
 
-func NewJWToken(usuarioId int, username string, authorities []string) (string, error) {
+func NewJWToken(userId int, username string, authorities []string) (string, error) {
 	// Create claims with multiple fields populated
 	claims := customClaim{
 		UserName:    username,
@@ -28,7 +28,7 @@ func NewJWToken(usuarioId int, username string, authorities []string) (string, e
 			ExpiresAt: jtoken.NewNumericDate(time.Now().Add(duration)),
 			IssuedAt:  jtoken.NewNumericDate(time.Now()),
 			NotBefore: jtoken.NewNumericDate(time.Now()),
-			ID:        strconv.Itoa(usuarioId),
+			ID:        strconv.Itoa(userId),
 		},
 	}
 

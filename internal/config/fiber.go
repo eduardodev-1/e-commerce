@@ -14,17 +14,23 @@ func GetFiberConfig() *fiber.App {
 		cors.New(
 			cors.Config{
 				AllowOrigins: "*",
-				AllowMethods: "GET,POST,HEAD,PUT,DELETE,PATCH,OPTIONS",
+				AllowMethods: strings.Join([]string{
+					fiber.MethodGet,
+					fiber.MethodPost,
+					fiber.MethodHead,
+					fiber.MethodPut,
+					fiber.MethodDelete,
+					fiber.MethodPatch,
+					fiber.MethodOptions,
+				}, ","),
 			},
 		),
-		//Configurar recover
 		recover.New(recover.Config{EnableStackTrace: true}),
-		// Exclude favicon requests from logging
 		func(c *fiber.Ctx) error {
 			if strings.Contains(c.OriginalURL(), "/favicon.ico") {
 				return c.Next() // Skip logging for favicon requests
 			}
-			return logger.New()(c) // Log all other requests
+			return logger.New()(c)
 		},
 	)
 	return app

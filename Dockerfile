@@ -26,3 +26,5 @@ EXPOSE 2121
 
 # Comando para rodar a aplicação
 CMD ["./main"]
+# comando para criar o banco de dados
+# docker container run -e POSTGRES_PASSWORD=1234 -e POSTGRES_USER=postgres -e POSTGRES_DB=ecommerce -d -p 5433:5432 postgres
