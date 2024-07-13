@@ -3,7 +3,7 @@ package services
 import (
 	"e-commerce/internal/core/domain"
 	"e-commerce/internal/core/ports"
-	fiber_error "e-commerce/internal/error"
+	"e-commerce/internal/error"
 	"e-commerce/internal/utils"
 )
 
@@ -11,9 +11,9 @@ type UserService struct {
 	UserRepository ports.UserRepository
 }
 
-func NewUserService(usuarioRepo ports.UserRepository) *UserService {
+func NewUserService(userRepo ports.UserRepository) *UserService {
 	return &UserService{
-		UserRepository: usuarioRepo,
+		UserRepository: userRepo,
 	}
 }
 func (s *UserService) GetUserRoles(username string) ([]string, error) {
@@ -37,7 +37,7 @@ func (s *UserService) Authenticate(credentials *domain.RequestCredentials) (*dom
 
 	return user, nil
 }
-func (s *UserService) GetPaginatedList(requestParams *domain.RequestParams, page *domain.Page) (*domain.Page, *fiber_error.ErrorParams) {
+func (s *UserService) GetPaginatedList(requestParams *domain.RequestParams, page *domain.Page) (*domain.Page, *http_error.ErrorParams) {
 	page.SetRequestParams(requestParams)
 	queryParams := page.GetQueryParams()
 	content, count, errorParams := s.UserRepository.FindPaginatedWithTotalCount(queryParams)
@@ -48,7 +48,7 @@ func (s *UserService) GetPaginatedList(requestParams *domain.RequestParams, page
 	return page, nil
 }
 
-func (s *UserService) Get(id int) (*domain.User, *fiber_error.ErrorParams) {
+func (s *UserService) Get(id int) (*domain.User, *http_error.ErrorParams) {
 	product, errorParams := s.UserRepository.GetById(id)
 	if errorParams != nil {
 		return nil, errorParams

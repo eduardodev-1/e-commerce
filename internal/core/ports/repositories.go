@@ -17,7 +17,3 @@ type UserRepository interface {
 	GetById(id int) (*domain.User, *http_error.ErrorParams)
 	Insert(user *domain.User) (*domain.User, *http_error.ErrorParams)
 }
-
-type DataBaseRepository interface {
-	GetDB() interface{}
-}

@@ -1,23 +1,23 @@
-package controller
+package handler
 
 import (
 	"e-commerce/internal/core/domain"
-	"e-commerce/internal/core/services"
+	"e-commerce/internal/core/ports"
 	"e-commerce/internal/error"
 	"github.com/gofiber/fiber/v2"
 )
 
-type UserController struct {
-	commonController
-	UserService *services.UserService
+type UserHandler struct {
+	commonHandler
+	UserService ports.UserService
 }
 
-func NewUserController(userService *services.UserService) *UserController {
-	return &UserController{
+func NewUserHandler(userService ports.UserService) *UserHandler {
+	return &UserHandler{
 		UserService: userService,
 	}
 }
-func (c UserController) GetPaginatedList(ctx *fiber.Ctx) error {
+func (c UserHandler) GetPaginatedList(ctx *fiber.Ctx) error {
 
 	fiberError := http_error.HttpCustomError{Ctx: ctx}
 	var page = new(domain.Page)
@@ -29,7 +29,7 @@ func (c UserController) GetPaginatedList(ctx *fiber.Ctx) error {
 	return ctx.JSON(page)
 }
 
-func (c UserController) Get(ctx *fiber.Ctx) error {
+func (c UserHandler) Get(ctx *fiber.Ctx) error {
 	fiberError := http_error.HttpCustomError{Ctx: ctx}
 	id, err := ctx.ParamsInt("id", 0)
 	if err != nil || id <= 0 {

@@ -2,26 +2,33 @@ package repositories
 
 import (
 	"e-commerce/internal/core/ports"
-	"errors"
+	"e-commerce/internal/database"
 	"github.com/jmoiron/sqlx"
+	"log"
+)
+
+const (
+	Postgresql = "postgresql"
+	Mongodb    = "mongodb"
 )
 
 type Repositories struct {
-	UserRepository     ports.UserRepository
-	ProductRepository  ports.ProductRepository
-	DataBaseRepository ports.DataBaseRepository
+	UserRepository    ports.UserRepository
+	ProductRepository ports.ProductRepository
 }
 
-func NewRepositories(db interface{}, dbType string) (*Repositories, error) {
-	postgresDB := db.(*sqlx.DB)
-	switch dbType {
-	case "postgres":
+func NewRepositories(db *database.DB) *Repositories {
+	switch db.Type {
+	case Postgresql:
+		postgresDB := db.Db.(*sqlx.DB)
 		return &Repositories{
-			UserRepository:     NewUserRepository(postgresDB),
-			ProductRepository:  NewProductRepository(postgresDB),
-			DataBaseRepository: NewDataBaseRepository(postgresDB),
-		}, nil
+			UserRepository:    NewUserRepository(postgresDB),
+			ProductRepository: NewProductRepository(postgresDB),
+		}
+	case Mongodb:
+		//instanciar repositories do mongodb, por exemplo
 	default:
-		return nil, errors.New("unsupported db type")
+		log.Fatal("unsupported db type")
 	}
+	return nil
 }

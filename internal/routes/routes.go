@@ -1,37 +1,33 @@
 package routes
 
 import (
-	"e-commerce/internal/controller"
+	"e-commerce/internal/handler"
 	"github.com/gofiber/fiber/v2"
 )
 
-func PublicRoutes(app *fiber.App, allControllers *controller.Controllers) {
+func Public(app *fiber.App, allHandlers *handler.Handlers) {
 	v1 := app.Group("/v1")
-	dataBase := v1.Group("/database")
-	{
-		dataBase.Put("/restart", allControllers.DataBaseController.ResetDataBase)
-	}
 	login := v1.Group("/login")
 	{
-		login.Post("/submit", allControllers.LoginController.Authenticate)
+		login.Post("/submit", allHandlers.LoginHandler.Authenticate)
 	}
 	product := v1.Group("/product")
 	{
-		product.Get("/", allControllers.ProductController.GetPaginatedList)
-		product.Get("/:id", allControllers.ProductController.Get)
+		product.Get("/", allHandlers.ProductHandler.GetPaginatedList)
+		product.Get("/:id", allHandlers.ProductHandler.Get)
 	}
 }
 
-func PrivateRoutes(app *fiber.App, allControllers *controller.Controllers) {
+func Private(app *fiber.App, allHandlers *handler.Handlers) {
 	v1 := app.Group("/v1")
 	user := v1.Group("/user")
 	{
-		user.Get("/", allControllers.UserController.GetPaginatedList)
-		user.Get("/:id", allControllers.UserController.Get)
+		user.Get("/", allHandlers.UserHandler.GetPaginatedList)
+		user.Get("/:id", allHandlers.UserHandler.Get)
 	}
 	product := v1.Group("/product")
 	{
-		product.Get("/", allControllers.ProductController.GetPaginatedList)
-		product.Get("/:id", allControllers.ProductController.Get)
+		product.Get("/", allHandlers.ProductHandler.GetPaginatedList)
+		product.Get("/:id", allHandlers.ProductHandler.Get)
 	}
 }

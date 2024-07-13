@@ -1,9 +1,9 @@
-package controller
+package handler
 
 import (
 	"e-commerce/internal/auth"
 	"e-commerce/internal/core/domain"
-	"e-commerce/internal/core/services"
+	"e-commerce/internal/core/ports"
 	"fmt"
 	"github.com/go-oauth2/oauth2/v4"
 
@@ -11,17 +11,17 @@ import (
 	_ "github.com/gofiber/fiber/v2/middleware/basicauth"
 )
 
-type LoginController struct {
-	UserService *services.UserService
+type LoginHandler struct {
+	UserService ports.UserService
 }
 
-func NewLoginController(userService *services.UserService) *LoginController {
-	return &LoginController{
+func NewLoginHandler(userService ports.UserService) *LoginHandler {
+	return &LoginHandler{
 		UserService: userService,
 	}
 }
 
-func (h *LoginController) Authenticate(c *fiber.Ctx) error {
+func (h *LoginHandler) Authenticate(c *fiber.Ctx) error {
 	err := auth.CheckAppCredentials(c)
 	if err != nil {
 		return err

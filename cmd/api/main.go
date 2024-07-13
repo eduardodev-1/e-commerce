@@ -2,9 +2,9 @@ package main
 
 import (
 	"e-commerce/internal/config"
-	"e-commerce/internal/controller"
 	"e-commerce/internal/core/services"
 	"e-commerce/internal/database/postgres"
+	"e-commerce/internal/handler"
 	"e-commerce/internal/middleware"
 	"e-commerce/internal/repositories"
 	"e-commerce/internal/routes"
@@ -15,17 +15,17 @@ import (
 func main() {
 	db := postgres.NewPsqlConn()
 
-	app := config.GetFiberConfig()
-
-	allRepositories, _ := repositories.NewRepositories(db, "postgres")
+	allRepositories := repositories.NewRepositories(db)
 
 	allServices := services.NewServices(allRepositories)
 
-	allControllers := controller.NewControllers(allServices)
+	allHandlers := handler.NewHandlers(allServices)
 
-	routes.PublicRoutes(app, allControllers)
+	app := config.GetFiberConfig()
+
+	routes.Public(app, allHandlers)
 	app.Use(middleware.AuthMiddleware)
-	routes.PrivateRoutes(app, allControllers)
+	routes.Private(app, allHandlers)
 
 	PORT := os.Getenv("FIBER_PORT")
 	err := app.Listen(":" + PORT)

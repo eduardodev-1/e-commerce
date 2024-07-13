@@ -3,7 +3,7 @@ package services
 import (
 	"e-commerce/internal/core/domain"
 	"e-commerce/internal/core/ports"
-	fiber_error "e-commerce/internal/error"
+	"e-commerce/internal/error"
 )
 
 type ProductService struct {
@@ -16,7 +16,7 @@ func NewProductService(productRepository ports.ProductRepository) *ProductServic
 	}
 }
 
-func (s ProductService) GetPaginatedList(requestParams *domain.RequestParams, page *domain.Page) (*domain.Page, *fiber_error.ErrorParams) {
+func (s ProductService) GetPaginatedList(requestParams *domain.RequestParams, page *domain.Page) (*domain.Page, *http_error.ErrorParams) {
 	queryParams := page.SetRequestParamsAndGetQueryParams(requestParams)
 	content, totalCount, errorParams := s.ProductRepository.FindPaginatedWithTotalCount(queryParams)
 	if errorParams != nil {
@@ -26,7 +26,7 @@ func (s ProductService) GetPaginatedList(requestParams *domain.RequestParams, pa
 	return page, nil
 }
 
-func (s ProductService) Get(id int) (*domain.Product, *fiber_error.ErrorParams) {
+func (s ProductService) Get(id int) (*domain.Product, *http_error.ErrorParams) {
 	product, errorParams := s.ProductRepository.GetById(id)
 	if errorParams != nil {
 		return nil, errorParams

@@ -1,23 +1,23 @@
-package controller
+package handler
 
 import (
 	"e-commerce/internal/core/domain"
-	"e-commerce/internal/core/services"
+	"e-commerce/internal/core/ports"
 	"e-commerce/internal/error"
 	"github.com/gofiber/fiber/v2"
 )
 
-type ProductController struct {
-	commonController
-	ProductService *services.ProductService
+type ProductHandler struct {
+	commonHandler
+	ProductService ports.ProductService
 }
 
-func NewProductController(ProductSvc *services.ProductService) *ProductController {
-	return &ProductController{
+func NewProductHandler(ProductSvc ports.ProductService) *ProductHandler {
+	return &ProductHandler{
 		ProductService: ProductSvc,
 	}
 }
-func (c ProductController) GetPaginatedList(ctx *fiber.Ctx) error {
+func (c ProductHandler) GetPaginatedList(ctx *fiber.Ctx) error {
 	httpCustomError := http_error.HttpCustomError{Ctx: ctx}
 	var page = new(domain.Page)
 	requestParams := c.GetRequestParams(ctx)
@@ -28,7 +28,7 @@ func (c ProductController) GetPaginatedList(ctx *fiber.Ctx) error {
 	return ctx.JSON(page)
 }
 
-func (c ProductController) Get(ctx *fiber.Ctx) error {
+func (c ProductHandler) Get(ctx *fiber.Ctx) error {
 	fiberError := http_error.HttpCustomError{Ctx: ctx}
 	id, err := ctx.ParamsInt("id", 0)
 	if err != nil || id <= 0 {
