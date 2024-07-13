@@ -1,4 +1,4 @@
-package models
+package domain
 
 import (
 	"errors"
@@ -89,6 +89,7 @@ type Picture struct {
 }
 
 type User struct {
+	ID         int        `json:"ID"`
 	Gender     string     `json:"gender"`
 	Name       Name       `json:"name"`
 	Location   Location   `json:"location"`

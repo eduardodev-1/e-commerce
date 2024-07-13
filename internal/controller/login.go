@@ -2,8 +2,8 @@ package controller
 
 import (
 	"e-commerce/internal/auth"
-	"e-commerce/internal/models"
-	"e-commerce/internal/services"
+	"e-commerce/internal/core/domain"
+	"e-commerce/internal/core/services"
 	"fmt"
 	"github.com/go-oauth2/oauth2/v4"
 
@@ -21,20 +21,20 @@ func NewLoginController(userService *services.UserService) *LoginController {
 	}
 }
 
-func (h *LoginController) Autenticate(c *fiber.Ctx) error {
+func (h *LoginController) Authenticate(c *fiber.Ctx) error {
 	err := auth.CheckAppCredentials(c)
 	if err != nil {
 		return err
 	}
 
-	loginRequest := new(models.RequestCredentials)
+	loginRequest := new(domain.RequestCredentials)
 	if err = c.BodyParser(loginRequest); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
 
-	var user = new(models.AuthenticatedUser)
+	var user = new(domain.AuthenticatedUser)
 	grantType := oauth2.GrantType(loginRequest.GrantType)
 
 	switch grantType {
@@ -65,7 +65,5 @@ func (h *LoginController) Autenticate(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"token": token,
-	})
+	return c.Status(fiber.StatusOK).JSON(domain.LoginResponse{Token: token})
 }

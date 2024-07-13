@@ -7,9 +7,13 @@ import (
 
 func PublicRoutes(app *fiber.App, allControllers *controller.Controllers) {
 	v1 := app.Group("/v1")
+	dataBase := v1.Group("/database")
+	{
+		dataBase.Put("/restart", allControllers.DataBaseController.ResetDataBase)
+	}
 	login := v1.Group("/login")
 	{
-		login.Post("/submit", allControllers.LoginController.Autenticate)
+		login.Post("/submit", allControllers.LoginController.Authenticate)
 	}
 	product := v1.Group("/product")
 	{
@@ -20,10 +24,6 @@ func PublicRoutes(app *fiber.App, allControllers *controller.Controllers) {
 
 func PrivateRoutes(app *fiber.App, allControllers *controller.Controllers) {
 	v1 := app.Group("/v1")
-	dataBase := v1.Group("/database")
-	{
-		dataBase.Put("/restart", allControllers.DataBaseController.ResetDataBase)
-	}
 	user := v1.Group("/user")
 	{
 		user.Get("/", allControllers.UserController.GetPaginatedList)

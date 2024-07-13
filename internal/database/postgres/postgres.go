@@ -1,9 +1,10 @@
-package database
+package postgres
 
 import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -18,7 +19,7 @@ type dbParams struct {
 	SslMode  string
 }
 
-func NewPsqlConn() (*sqlx.DB, error) {
+func NewPsqlConn() *sqlx.DB {
 	params := dbParams{
 		Host:     os.Getenv("DB_HOST"),
 		Port:     os.Getenv("DB_PORT"),
@@ -32,21 +33,23 @@ func NewPsqlConn() (*sqlx.DB, error) {
 
 	db, err := sqlx.Connect("postgres", connStr)
 	if err != nil {
-		return nil, err
+		log.Fatal(err.Error())
 	}
 
 	err = db.Ping()
 	if err != nil {
-		return nil, err
+		log.Fatal(err.Error())
 	}
-	// Carregar e executar o script SQL
-	err = ExecuteSQLFile("internal/database/schema.sql", db)
+	err = ExecuteSQLFile("internal/database/postgres/schema.sql", db)
 	if err != nil {
-		log.Fatal("Failed to execute schema.sql:", err)
+		if containsAll(err.Error(), []string{"constraint", "for relation", "already exists"}) {
+			log.Println("Constraint already exists, skipping...")
+		} else {
+			log.Fatal("Failed to execute schema.sql:", err)
+		}
 	}
-	return db, nil
+	return db
 }
-
 func ExecuteSQLFile(filepath string, db *sqlx.DB) error {
 	file, err := os.ReadFile(filepath)
 	if err != nil {
@@ -59,13 +62,22 @@ func ExecuteSQLFile(filepath string, db *sqlx.DB) error {
 		return err
 	}
 
-	_, err = tx.Exec(script)
+	result, err := tx.Exec(script)
 	if err != nil {
-		err = tx.Rollback()
-		if err != nil {
-			return err
+		errRollback := tx.Rollback()
+		if errRollback != nil {
+			return errRollback
 		}
 		return err
 	}
+	fmt.Println(result)
 	return tx.Commit()
+}
+func containsAll(mainStr string, substrs []string) bool {
+	for _, substr := range substrs {
+		if !strings.Contains(mainStr, substr) {
+			return false
+		}
+	}
+	return true
 }

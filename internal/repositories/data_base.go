@@ -13,3 +13,6 @@ func NewDataBaseRepository(db *sqlx.DB) *DataBaseRepository {
 		db,
 	}
 }
+func (r *DataBaseRepository) GetDB() interface{} {
+	return r.DB
+}

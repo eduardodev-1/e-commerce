@@ -1,17 +1,17 @@
 package services
 
 import (
+	"e-commerce/internal/core/domain"
+	"e-commerce/internal/core/ports"
 	fiber_error "e-commerce/internal/error"
-	"e-commerce/internal/models"
-	"e-commerce/internal/repositories"
 	"e-commerce/internal/utils"
 )
 
 type UserService struct {
-	UserRepository *repositories.UserRepository
+	UserRepository ports.UserRepository
 }
 
-func NewUserService(usuarioRepo *repositories.UserRepository) *UserService {
+func NewUserService(usuarioRepo ports.UserRepository) *UserService {
 	return &UserService{
 		UserRepository: usuarioRepo,
 	}
@@ -21,13 +21,13 @@ func (s *UserService) GetUserRoles(username string) ([]string, error) {
 	return authorities, err
 
 }
-func (s *UserService) Authenticate(credentials *models.RequestCredentials) (*models.AuthenticatedUser, error) {
+func (s *UserService) Authenticate(credentials *domain.RequestCredentials) (*domain.AuthenticatedUser, error) {
 
 	user, hashedPassword, err := s.UserRepository.GetAuthenticationData(credentials.Username)
 	if err != nil {
 		return nil, err
 	}
-	passwordPair := models.PasswordPair{
+	passwordPair := domain.PasswordPair{
 		Password:       credentials.Password,
 		HashedPassword: hashedPassword,
 	}
@@ -37,10 +37,10 @@ func (s *UserService) Authenticate(credentials *models.RequestCredentials) (*mod
 
 	return user, nil
 }
-func (s *UserService) GetPaginatedList(requestParams *models.RequestParams, page *models.Page) (*models.Page, *fiber_error.ErrorParams) {
+func (s *UserService) GetPaginatedList(requestParams *domain.RequestParams, page *domain.Page) (*domain.Page, *fiber_error.ErrorParams) {
 	page.SetRequestParams(requestParams)
 	queryParams := page.GetQueryParams()
-	content, count, errorParams := s.UserRepository.PageableFindAll(queryParams)
+	content, count, errorParams := s.UserRepository.FindPaginatedWithTotalCount(queryParams)
 	if errorParams != nil {
 		return nil, errorParams
 	}
@@ -48,7 +48,7 @@ func (s *UserService) GetPaginatedList(requestParams *models.RequestParams, page
 	return page, nil
 }
 
-func (s *UserService) Get(id int) (*models.User, *fiber_error.ErrorParams) {
+func (s *UserService) Get(id int) (*domain.User, *fiber_error.ErrorParams) {
 	product, errorParams := s.UserRepository.GetById(id)
 	if errorParams != nil {
 		return nil, errorParams

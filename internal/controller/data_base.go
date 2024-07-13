@@ -1,9 +1,10 @@
 package controller
 
 import (
-	"e-commerce/internal/database"
-	"e-commerce/internal/services"
+	"e-commerce/internal/core/services"
+	"e-commerce/internal/database/postgres"
 	"github.com/gofiber/fiber/v2"
+	"github.com/jmoiron/sqlx"
 )
 
 type DataBaseController struct {
@@ -16,20 +17,20 @@ func NewDataBaseController(DataBaseService *services.DataBaseService) *DataBaseC
 	}
 }
 func (c *DataBaseController) ResetDataBase(ctx *fiber.Ctx) error {
-	db := c.DataBaseService.DataBaseRepository.DB
-	err := database.ExecuteSQLFile("internal/database/deleteSchema.sql", db)
+	db := c.DataBaseService.DataBaseRepository.GetDB().(*sqlx.DB)
+	err := postgres.ExecuteSQLFile("internal/database/postgres/deleteSchema.sql", db)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error deleteSchema": err.Error(),
 		})
 	}
-	err = database.ExecuteSQLFile("internal/database/schema.sql", db)
+	err = postgres.ExecuteSQLFile("internal/database/postgres/schema.sql", db)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error execute schema": err.Error(),
 		})
 	}
-	err = database.ExecuteSQLFile("internal/database/inserts.sql", db)
+	err = postgres.ExecuteSQLFile("internal/database/postgres/inserts.sql", db)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error inserts": err.Error(),

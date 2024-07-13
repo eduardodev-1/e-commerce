@@ -1,13 +1,14 @@
 package controller
 
 import (
-	fiber_error "e-commerce/internal/error"
-	"e-commerce/internal/models"
-	"e-commerce/internal/services"
+	"e-commerce/internal/core/domain"
+	"e-commerce/internal/core/services"
+	"e-commerce/internal/error"
 	"github.com/gofiber/fiber/v2"
 )
 
 type UserController struct {
+	commonController
 	UserService *services.UserService
 }
 
@@ -18,28 +19,28 @@ func NewUserController(userService *services.UserService) *UserController {
 }
 func (c UserController) GetPaginatedList(ctx *fiber.Ctx) error {
 
-	fiberError := fiber_error.FiberCustomError{Ctx: ctx}
-	var page = new(models.Page)
-	requestParams := page.GetRequestParams(ctx)
+	fiberError := http_error.HttpCustomError{Ctx: ctx}
+	var page = new(domain.Page)
+	requestParams := c.GetRequestParams(ctx)
 	page, errorParams := c.UserService.GetPaginatedList(requestParams, page)
 	if errorParams != nil {
-		return fiberError.NewFiberError(errorParams)
+		return fiberError.NewHttpError(errorParams)
 	}
 	return ctx.JSON(page)
 }
 
 func (c UserController) Get(ctx *fiber.Ctx) error {
-	fiberError := fiber_error.FiberCustomError{Ctx: ctx}
+	fiberError := http_error.HttpCustomError{Ctx: ctx}
 	id, err := ctx.ParamsInt("id", 0)
 	if err != nil || id <= 0 {
-		errorParams := new(fiber_error.ErrorParams)
+		errorParams := new(http_error.ErrorParams)
 		errorParams.Message = "invalid id"
 		errorParams.Status = fiber.StatusBadRequest
-		return fiberError.NewFiberError(errorParams)
+		return fiberError.NewHttpError(errorParams)
 	}
 	product, errorParams := c.UserService.Get(id)
 	if errorParams != nil {
-		return fiberError.NewFiberError(errorParams)
+		return fiberError.NewHttpError(errorParams)
 	}
 	return ctx.JSON(product)
 }

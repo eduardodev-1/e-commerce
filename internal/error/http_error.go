@@ -1,12 +1,12 @@
-package fiber_error
+package http_error
 
 import "github.com/gofiber/fiber/v2"
 
-type FiberCustomError struct {
+type HttpCustomError struct {
 	Ctx *fiber.Ctx
 }
 
-func (f *FiberCustomError) NewFiberError(params *ErrorParams) error {
+func (f *HttpCustomError) NewHttpError(params *ErrorParams) error {
 	return f.Ctx.Status(params.Status).JSON(fiber.Map{
 		"error": params.Message,
 	})

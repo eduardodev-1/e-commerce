@@ -2,8 +2,8 @@ package repositories
 
 import (
 	"database/sql"
+	"e-commerce/internal/core/domain"
 	fiber_error "e-commerce/internal/error"
-	"e-commerce/internal/models"
 	"errors"
 	"fmt"
 	"github.com/gofiber/fiber/v2"
@@ -19,10 +19,11 @@ func NewProductRepository(db *sqlx.DB) *ProductRepository {
 		db,
 	}
 }
-func (r ProductRepository) PageableFindAll(params *models.QueryParams) (*[]models.Product, int, *fiber_error.ErrorParams) {
-	var products = new([]models.Product)
+func (r ProductRepository) FindPaginatedWithTotalCount(params *domain.QueryParams) (*[]domain.Product, domain.TotalCount, *fiber_error.ErrorParams) {
+
+	var products = new([]domain.Product)
 	var errorParams = new(fiber_error.ErrorParams)
-	var total int
+	var total domain.TotalCount
 
 	countQuery := `SELECT COUNT(*) FROM tb_product`
 	err := r.Get(&total, countQuery)
@@ -42,9 +43,9 @@ func (r ProductRepository) PageableFindAll(params *models.QueryParams) (*[]model
 	return products, total, nil
 }
 
-func (r ProductRepository) GetById(id int) (*models.Product, *fiber_error.ErrorParams) {
+func (r ProductRepository) GetById(id int) (*domain.Product, *fiber_error.ErrorParams) {
 	var errorParams = new(fiber_error.ErrorParams)
-	var product = new(models.Product)
+	var product = new(domain.Product)
 	query := `SELECT * FROM tb_product WHERE id = $1`
 	err := r.Get(product, query, id)
 	if err != nil {
@@ -55,9 +56,9 @@ func (r ProductRepository) GetById(id int) (*models.Product, *fiber_error.ErrorP
 		errorParams.SetDefaultParams(err)
 		return nil, errorParams
 	}
-	return product, errorParams
+	return product, nil
 }
-func (r ProductRepository) Insert(product *models.Product) (*models.Product, *fiber_error.ErrorParams) {
+func (r ProductRepository) Insert(product *domain.Product) (*domain.Product, *fiber_error.ErrorParams) {
 	var errorParams = new(fiber_error.ErrorParams)
 	query := `INSERT INTO tb_product (price, description, img_url, name, seller)
 	VALUES ($1, $2, $3, $4, $5) RETURNING id`

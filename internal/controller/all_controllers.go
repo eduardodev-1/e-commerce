@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"e-commerce/internal/services"
+	"e-commerce/internal/core/services"
 )
 
 type Controllers struct {

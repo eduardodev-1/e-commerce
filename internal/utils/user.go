@@ -1,12 +1,12 @@
 package utils
 
 import (
-	"e-commerce/internal/models"
+	"e-commerce/internal/core/domain"
 	"errors"
 	"gopkg.in/encoder.v1"
 )
 
-func CheckPasswordRequest(passwordPair models.PasswordPair) error {
+func CheckPasswordRequest(passwordPair domain.PasswordPair) error {
 	encoding := encoder.NewBcryptEncoder()
 	verify, err := encoding.Verify(passwordPair.HashedPassword, passwordPair.Password)
 	if err != nil || verify == false {
