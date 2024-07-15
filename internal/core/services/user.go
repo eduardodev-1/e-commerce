@@ -3,7 +3,7 @@ package services
 import (
 	"e-commerce/internal/core/domain"
 	"e-commerce/internal/core/ports"
-	"e-commerce/internal/error"
+	httpError "e-commerce/internal/error"
 	"e-commerce/internal/utils"
 )
 
@@ -37,7 +37,8 @@ func (s *UserService) Authenticate(credentials *domain.RequestCredentials) (*dom
 
 	return user, nil
 }
-func (s *UserService) GetPaginatedList(requestParams *domain.RequestParams, page *domain.Page) (*domain.Page, *http_error.ErrorParams) {
+func (s *UserService) GetPaginatedList(requestParams *domain.RequestParams) (*domain.Page, *httpError.ErrorParams) {
+	page := new(domain.Page)
 	page.SetRequestParams(requestParams)
 	queryParams := page.GetQueryParams()
 	content, count, errorParams := s.UserRepository.FindPaginatedWithTotalCount(queryParams)
@@ -48,8 +49,8 @@ func (s *UserService) GetPaginatedList(requestParams *domain.RequestParams, page
 	return page, nil
 }
 
-func (s *UserService) Get(id int) (*domain.User, *http_error.ErrorParams) {
-	product, errorParams := s.UserRepository.GetById(id)
+func (s *UserService) Get(id int) (*domain.User, *httpError.ErrorParams) {
+	product, errorParams := s.UserRepository.FindById(id)
 	if errorParams != nil {
 		return nil, errorParams
 	}

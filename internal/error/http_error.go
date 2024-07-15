@@ -1,4 +1,4 @@
-package http_error
+package httpError
 
 import "github.com/gofiber/fiber/v2"
 

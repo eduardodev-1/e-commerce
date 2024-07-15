@@ -1,8 +1,8 @@
 package repositories
 
 import (
+	"e-commerce/internal/core/domain"
 	"e-commerce/internal/core/ports"
-	"e-commerce/internal/database"
 	"github.com/jmoiron/sqlx"
 	"log"
 )
@@ -17,7 +17,7 @@ type Repositories struct {
 	ProductRepository ports.ProductRepository
 }
 
-func NewRepositories(db *database.DB) *Repositories {
+func NewRepositories(db *domain.DB) *Repositories {
 	switch db.Type {
 	case Postgresql:
 		postgresDB := db.Db.(*sqlx.DB)

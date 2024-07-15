@@ -1,7 +1,7 @@
 package postgres
 
 import (
-	"e-commerce/internal/database"
+	"e-commerce/internal/core/domain"
 	"e-commerce/internal/repositories"
 	"fmt"
 	"log"
@@ -21,7 +21,7 @@ type dbParams struct {
 	SslMode  string
 }
 
-func NewPsqlConn() *database.DB {
+func NewPsqlConn() *domain.DB {
 	params := dbParams{
 		Host:     os.Getenv("DB_HOST"),
 		Port:     os.Getenv("DB_PORT"),
@@ -50,7 +50,7 @@ func NewPsqlConn() *database.DB {
 			log.Fatal("Failed to execute schema.sql:", err)
 		}
 	}
-	return &database.DB{
+	return &domain.DB{
 		Db:   db,
 		Type: repositories.Postgresql,
 	}

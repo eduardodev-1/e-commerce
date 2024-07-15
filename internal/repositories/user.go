@@ -38,9 +38,9 @@ func (r *UserRepository) GetAuthenticationData(username string) (*domain.Authent
 		HashedPassword string `db:"password"`
 	}
 	query := `
-	SELECT u.id, u.email as username, u.password
+	SELECT u.id, u.login_username as username, u.login_password as password
 	FROM tb_user u
-	WHERE u.email = $1`
+	WHERE u.login_username = $1`
 
 	err := r.Get(&result, query, username)
 	if err != nil {
@@ -53,9 +53,9 @@ func (r *UserRepository) GetAuthenticationData(username string) (*domain.Authent
 	u := &result.AuthenticatedUser
 	return u, result.HashedPassword, nil
 }
-func (r *UserRepository) FindPaginatedWithTotalCount(params *domain.QueryParams) (*[]domain.User, domain.TotalCount, *http_error.ErrorParams) {
+func (r *UserRepository) FindPaginatedWithTotalCount(params *domain.QueryParams) (*[]domain.User, domain.TotalCount, *httpError.ErrorParams) {
 	var users = new([]domain.User)
-	var errorParams = new(http_error.ErrorParams)
+	var errorParams = new(httpError.ErrorParams)
 	var total domain.TotalCount
 
 	countQuery := `SELECT COUNT(*) FROM tb_user`
@@ -76,8 +76,8 @@ func (r *UserRepository) FindPaginatedWithTotalCount(params *domain.QueryParams)
 	return users, total, nil
 }
 
-func (r *UserRepository) GetById(id int) (*domain.User, *http_error.ErrorParams) {
-	var errorParams = new(http_error.ErrorParams)
+func (r *UserRepository) FindById(id int) (*domain.User, *httpError.ErrorParams) {
+	var errorParams = new(httpError.ErrorParams)
 	var user = new(domain.User)
 	query := `SELECT * FROM tb_user WHERE id = $1`
 	err := r.Get(user, query, id)
@@ -91,8 +91,8 @@ func (r *UserRepository) GetById(id int) (*domain.User, *http_error.ErrorParams)
 	}
 	return user, errorParams
 }
-func (r *UserRepository) Insert(user *domain.User) (*domain.User, *http_error.ErrorParams) {
-	var errorParams = new(http_error.ErrorParams)
+func (r *UserRepository) Insert(user *domain.User) (*domain.User, *httpError.ErrorParams) {
+	var errorParams = new(httpError.ErrorParams)
 	tx, err := r.Beginx()
 	if err != nil {
 		errorParams.SetDefaultParams(err)

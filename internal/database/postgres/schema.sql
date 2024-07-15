@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS tb_category (id bigserial not null,name varchar(255),
 CREATE TABLE IF NOT EXISTS tb_order (id bigserial not null,status smallint check (status between 0 and 4), client_id bigint, moment TIMESTAMP WITHOUT TIME ZONE, primary key (id));
 CREATE TABLE IF NOT EXISTS tb_order_item (order_id bigint not null, product_id bigint not null, primary key (order_id, product_id), price float(53), quantity integer);
 CREATE TABLE IF NOT EXISTS tb_payment (order_id bigint not null, moment TIMESTAMP WITHOUT TIME ZONE, primary key (order_id));
-CREATE TABLE IF NOT EXISTS tb_product (id bigserial not null, price float(53), description TEXT, img_url varchar(255), name varchar(255), primary key (id), seller bigint);
+CREATE TABLE IF NOT EXISTS tb_product (id bigserial not null, price float(53), description TEXT, img_url varchar(255), name varchar(255), primary key (id), seller bigint, quantity int);
 CREATE TABLE IF NOT EXISTS tb_product_category (category_id bigint not null, product_id bigint not null, primary key (category_id, product_id));
 CREATE TABLE IF NOT EXISTS tb_role (id bigserial not null, authority varchar(255), primary key (id));
 CREATE TABLE IF NOT EXISTS tb_user_role (role_id bigint not null, user_id bigint not null, primary key (role_id, user_id));
