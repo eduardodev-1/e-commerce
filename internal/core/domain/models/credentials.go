@@ -1,4 +1,4 @@
-package domain
+package models
 
 type RequestCredentials struct {
 	Username  string `json:"username" form:"username"`

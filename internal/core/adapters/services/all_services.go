@@ -1,8 +1,8 @@
 package services
 
 import (
+	"e-commerce/internal/core/adapters/repositories"
 	"e-commerce/internal/core/ports"
-	"e-commerce/internal/repositories"
 )
 
 type Services struct {

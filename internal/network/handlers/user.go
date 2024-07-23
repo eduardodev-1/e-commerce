@@ -1,7 +1,7 @@
-package handler
+package handlers
 
 import (
-	"e-commerce/internal/core/domain"
+	"e-commerce/internal/core/domain/models"
 	"e-commerce/internal/core/ports"
 	"e-commerce/internal/error"
 	"github.com/gofiber/fiber/v2"
@@ -29,10 +29,14 @@ func (h UserHandler) GetPaginatedList(ctx *fiber.Ctx) error {
 
 func (h UserHandler) Get(ctx *fiber.Ctx) error {
 	fiberError := httpError.HttpCustomError{Ctx: ctx}
-	var userName string
-	id := ctx.Params("id", "")
-	userName = ctx.Locals("username").(string)
-	user, errorParams := h.UserService.Get(id, userName)
+	id, err := ctx.ParamsInt("id", 0)
+	if err != nil || id <= 0 {
+		return fiberError.NewHttpError(&httpError.ErrorParams{
+			Message: "Invalid id",
+			Status:  fiber.StatusBadRequest,
+		})
+	}
+	user, errorParams := h.UserService.Get(id)
 	if errorParams != nil {
 		return fiberError.NewHttpError(errorParams)
 	}
@@ -41,22 +45,43 @@ func (h UserHandler) Get(ctx *fiber.Ctx) error {
 
 func (h UserHandler) Update(ctx *fiber.Ctx) error {
 	fiberError := httpError.HttpCustomError{Ctx: ctx}
-	userUpdateRequest = new(domain.UserUpdateRequest)
-	var userName string
-	id := ctx.Params("id", "")
-	userName = ctx.Locals("username").(string)
-	err := ctx.BodyParser(userToUpdate)
+	userUpdateRequest := new(models.UserUpdateRequest)
+	id, err := ctx.ParamsInt("id", 0)
+	if err != nil || id <= 0 {
+		return fiberError.NewHttpError(&httpError.ErrorParams{
+			Message: "Invalid id",
+			Status:  fiber.StatusBadRequest,
+		})
+	}
+	err = ctx.BodyParser(userUpdateRequest)
 	if err != nil {
 		return fiberError.NewHttpError(&httpError.ErrorParams{
 			Message: "Failed to parse request body",
 			Status:  fiber.StatusBadRequest,
 		})
 	}
-	errorParams := h.UserService.Update(id, userName, userToUpdate)
+	userUpdateRequest.User.ID = id
+	errorParams := h.UserService.Update(userUpdateRequest)
 	if errorParams != nil {
 		return fiberError.NewHttpError(errorParams)
 	}
 	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
 		"success": true,
 	})
+}
+
+func (h UserHandler) Delete(ctx *fiber.Ctx) error {
+	fiberError := httpError.HttpCustomError{Ctx: ctx}
+	id, err := ctx.ParamsInt("id", 0)
+	if err != nil || id <= 0 {
+		return fiberError.NewHttpError(&httpError.ErrorParams{
+			Message: "Invalid id",
+			Status:  fiber.StatusBadRequest,
+		})
+	}
+	errorParams := h.UserService.Delete(id)
+	if errorParams != nil {
+		return fiberError.NewHttpError(errorParams)
+	}
+	return ctx.SendStatus(fiber.StatusNoContent)
 }

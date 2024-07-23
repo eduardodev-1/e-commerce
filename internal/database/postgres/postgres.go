@@ -1,8 +1,8 @@
 package postgres
 
 import (
-	"e-commerce/internal/core/domain"
-	"e-commerce/internal/repositories"
+	"e-commerce/internal/core/adapters/repositories"
+	"e-commerce/internal/core/domain/models"
 	"fmt"
 	"log"
 	"os"
@@ -21,7 +21,7 @@ type dbParams struct {
 	SslMode  string
 }
 
-func NewPsqlConn() *domain.DB {
+func NewPsqlConn() *models.DB {
 	params := dbParams{
 		Host:     os.Getenv("DB_HOST"),
 		Port:     os.Getenv("DB_PORT"),
@@ -43,14 +43,14 @@ func NewPsqlConn() *domain.DB {
 		log.Fatal(err)
 	}
 
-	if err = executeSQLFile("internal/database/postgres/schema.sql", db); err != nil {
+	if err = executeSQLFile("internal/database/postgres/sql/schema.sql", db); err != nil {
 		if containsAll(err.Error(), []string{"constraint", "for relation", "already exists"}) {
 			log.Println("Constraint already exists, skipping...")
 		} else {
 			log.Fatal("Failed to execute schema.sql:", err)
 		}
 	}
-	return &domain.DB{
+	return &models.DB{
 		Db:   db,
 		Type: repositories.Postgresql,
 	}

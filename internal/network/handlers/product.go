@@ -1,7 +1,7 @@
-package handler
+package handlers
 
 import (
-	"e-commerce/internal/core/domain"
+	"e-commerce/internal/core/domain/models"
 	"e-commerce/internal/core/ports"
 	"e-commerce/internal/error"
 	"github.com/gofiber/fiber/v2"
@@ -31,10 +31,10 @@ func (h ProductHandler) Get(ctx *fiber.Ctx) error {
 	fiberError := httpError.HttpCustomError{Ctx: ctx}
 	id, err := ctx.ParamsInt("id", 0)
 	if err != nil || id <= 0 {
-		errorParams := new(httpError.ErrorParams)
-		errorParams.Message = "invalid id"
-		errorParams.Status = fiber.StatusBadRequest
-		return fiberError.NewHttpError(errorParams)
+		return fiberError.NewHttpError(&httpError.ErrorParams{
+			Message: "invalid id",
+			Status:  fiber.StatusBadRequest,
+		})
 	}
 	product, errorParams := h.ProductService.Get(id)
 	if errorParams != nil {
@@ -45,12 +45,12 @@ func (h ProductHandler) Get(ctx *fiber.Ctx) error {
 
 func (h ProductHandler) Post(ctx *fiber.Ctx) error {
 	fiberError := httpError.HttpCustomError{Ctx: ctx}
-	var product = new(domain.Product)
+	var product = new(models.Product)
 	if err := ctx.BodyParser(&product); err != nil {
-		errorParams := new(httpError.ErrorParams)
-		errorParams.Message = "Failed to parse request body"
-		errorParams.Status = fiber.StatusBadRequest
-		return fiberError.NewHttpError(errorParams)
+		return fiberError.NewHttpError(&httpError.ErrorParams{
+			Message: "Failed to parse request body",
+			Status:  fiber.StatusBadRequest,
+		})
 	}
 	id, errorParams := h.ProductService.Post(product)
 	if errorParams != nil {

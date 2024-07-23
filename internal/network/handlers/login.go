@@ -1,8 +1,8 @@
-package handler
+package handlers
 
 import (
 	"e-commerce/internal/auth"
-	"e-commerce/internal/core/domain"
+	"e-commerce/internal/core/domain/models"
 	"e-commerce/internal/core/ports"
 	httpError "e-commerce/internal/error"
 	"github.com/go-oauth2/oauth2/v4"
@@ -26,7 +26,7 @@ func (h *LoginHandler) Authenticate(ctx *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	authenticateRequest := new(domain.RequestCredentials)
+	authenticateRequest := new(models.RequestCredentials)
 	if err = ctx.BodyParser(authenticateRequest); err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
@@ -53,7 +53,7 @@ func (h *LoginHandler) Authenticate(ctx *fiber.Ctx) error {
 }
 
 func (h *LoginHandler) Post(ctx *fiber.Ctx) error {
-	newUser := new(domain.NewUserRequest)
+	newUser := new(models.UserFromRequest)
 	customError := httpError.HttpCustomError{Ctx: ctx}
 	errorParams := new(httpError.ErrorParams)
 	if err := ctx.BodyParser(newUser); err != nil {

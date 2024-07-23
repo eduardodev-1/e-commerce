@@ -1,4 +1,4 @@
-package domain
+package models
 
 import (
 	httpError "e-commerce/internal/error"
@@ -184,21 +184,26 @@ type UserUpdateRequest struct {
 	UpdateType string `json:"user_type"`
 }
 
-type NewUserRequest struct {
+type UserFromRequest struct {
 	User     User   `json:"user"`
 	UserType string `json:"user_type"`
 }
 
-func (r *NewUserRequest) CheckUserType() *httpError.ErrorParams {
+const (
+	Seller = "seller"
+	Client = "client"
+)
+
+func (r *UserFromRequest) CheckUserType() *httpError.ErrorParams {
 	errorParams := new(httpError.ErrorParams)
-	if r.UserType != "seller" && r.UserType != "client" {
+	if r.UserType != Seller && r.UserType != Client {
 		errorParams.SetDefaultParams(errors.New("invalid User type"))
 		return errorParams
 	}
 	return nil
 }
 
-func (r *NewUserRequest) SetEncryptedPassword() *httpError.ErrorParams {
+func (r *UserFromRequest) EncryptPassword() *httpError.ErrorParams {
 	var err error
 	var errorParams = new(httpError.ErrorParams)
 	var passwordPair = new(PasswordPair)

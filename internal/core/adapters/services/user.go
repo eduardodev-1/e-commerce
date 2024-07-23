@@ -2,11 +2,9 @@ package services
 
 import (
 	"e-commerce/internal/auth"
-	"e-commerce/internal/core/domain"
+	"e-commerce/internal/core/domain/models"
 	"e-commerce/internal/core/ports"
 	httpError "e-commerce/internal/error"
-	"github.com/gofiber/fiber/v2"
-	"strconv"
 )
 
 type UserService struct {
@@ -23,33 +21,30 @@ func (s *UserService) GetUserRoles(username string) ([]string, error) {
 	return authorities, err
 
 }
-func (s *UserService) AuthenticateUserWithPasswordCredentials(credentials *domain.RequestCredentials) (*domain.LoginResponse, error) {
-
+func (s *UserService) AuthenticateUserWithPasswordCredentials(credentials *models.RequestCredentials) (*models.LoginResponse, error) {
 	user, hashedPassword, err := s.UserRepository.GetAuthenticationData(credentials.Username)
 	if err != nil {
 		return nil, err
 	}
-	passwordPair := domain.PasswordPair{
+	passwordPair := models.PasswordPair{
 		Password:       credentials.Password,
 		HashedPassword: hashedPassword,
 	}
 	if err = passwordPair.CheckPasswordRequest(); err != nil {
 		return nil, err
 	}
-
 	roles, err := s.GetUserRoles(user.Username)
 	if err != nil {
 		return nil, err
 	}
-	// Create JWToken
 	token, err := auth.NewJWToken(user.Id, user.Username, roles)
 	if err != nil {
 		return nil, err
 	}
-	return &domain.LoginResponse{Token: token}, nil
+	return &models.LoginResponse{Token: token}, nil
 }
-func (s *UserService) GetPaginatedList(requestParams *domain.RequestParams) (*domain.Page, *httpError.ErrorParams) {
-	page := new(domain.Page)
+func (s *UserService) GetPaginatedList(requestParams *models.RequestParams) (*models.Page, *httpError.ErrorParams) {
+	page := new(models.Page)
 	page.SetRequestParams(requestParams)
 	queryParams := page.GetQueryParams()
 	content, count, errorParams := s.UserRepository.FindPaginatedWithTotalCount(queryParams)
@@ -59,37 +54,40 @@ func (s *UserService) GetPaginatedList(requestParams *domain.RequestParams) (*do
 	page.SetResultParams(content, count)
 	return page, nil
 }
-func (s *UserService) Get(id string, userName string) (*domain.User, *httpError.ErrorParams) {
-	if id == "me" {
-		user, errorParams := s.UserRepository.FindByUserName(userName)
-		if errorParams != nil {
-			return nil, errorParams
-		}
-		return user, nil
-	}
-	idToInt, err := strconv.Atoi(id)
-	if err != nil {
-		return nil, &httpError.ErrorParams{
-			Message: "invalid id",
-			Status:  fiber.StatusBadRequest,
-		}
-	}
-	user, errorParams := s.UserRepository.FindById(idToInt)
+func (s *UserService) Get(id int) (*models.User, *httpError.ErrorParams) {
+	user, errorParams := s.UserRepository.FindById(id)
 	if errorParams != nil {
 		return nil, errorParams
 	}
 	return user, nil
 }
-func (s *UserService) CreateNewUser(newUser *domain.NewUserRequest) (int, *httpError.ErrorParams) {
+func (s *UserService) CreateNewUser(newUser *models.UserFromRequest) (int, *httpError.ErrorParams) {
 	errorParams := new(httpError.ErrorParams)
 	errorParams = newUser.CheckUserType()
 	if errorParams != nil {
 		return 0, errorParams
 	}
-	errorParams = newUser.SetEncryptedPassword()
+	errorParams = newUser.EncryptPassword()
 	if errorParams != nil {
 		return 0, errorParams
 	}
 	newUserId, errorParams := s.UserRepository.Insert(newUser)
 	return newUserId, errorParams
+}
+func (s *UserService) Update(userToUpdate *models.UserFromRequest) *httpError.ErrorParams {
+	errorParams := new(httpError.ErrorParams)
+	errorParams = userToUpdate.CheckUserType()
+	if errorParams != nil {
+		return errorParams
+	}
+	errorParams = userToUpdate.EncryptPassword()
+	if errorParams != nil {
+		return errorParams
+	}
+	errorParams := s.UserRepository.Update(userToUpdate)
+	return nil
+}
+func (s *UserService) Delete(id int) *httpError.ErrorParams {
+	//TODO implement me
+	panic("implement me")
 }

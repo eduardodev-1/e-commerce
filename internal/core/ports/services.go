@@ -1,19 +1,21 @@
 package ports
 
 import (
-	"e-commerce/internal/core/domain"
+	"e-commerce/internal/core/domain/models"
 	httpError "e-commerce/internal/error"
 )
 
 type UserService interface {
 	GetUserRoles(username string) ([]string, error)
-	AuthenticateUserWithPasswordCredentials(credentials *domain.RequestCredentials) (*domain.LoginResponse, error)
-	GetPaginatedList(requestParams *domain.RequestParams) (*domain.Page, *httpError.ErrorParams)
-	Get(id string, userName string) (*domain.User, *httpError.ErrorParams)
-	CreateNewUser(newUser *domain.NewUserRequest) (id int, errorParams *httpError.ErrorParams)
+	AuthenticateUserWithPasswordCredentials(credentials *models.RequestCredentials) (*models.LoginResponse, error)
+	GetPaginatedList(requestParams *models.RequestParams) (*models.Page, *httpError.ErrorParams)
+	Get(id int) (*models.User, *httpError.ErrorParams)
+	CreateNewUser(newUser *models.UserFromRequest) (id int, errorParams *httpError.ErrorParams)
+	Update(request *models.UserFromRequest) *httpError.ErrorParams
+	Delete(id int) *httpError.ErrorParams
 }
 type ProductService interface {
-	GetPaginatedList(requestParams *domain.RequestParams) (*domain.Page, *httpError.ErrorParams)
-	Get(id int) (*domain.Product, *httpError.ErrorParams)
-	Post(*domain.Product) (id int, errorParams *httpError.ErrorParams)
+	GetPaginatedList(requestParams *models.RequestParams) (*models.Page, *httpError.ErrorParams)
+	Get(id int) (*models.Product, *httpError.ErrorParams)
+	Post(*models.Product) (id int, errorParams *httpError.ErrorParams)
 }

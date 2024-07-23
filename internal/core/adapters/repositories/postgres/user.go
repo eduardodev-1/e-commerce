@@ -1,8 +1,8 @@
-package repositories
+package postgres
 
 import (
 	"database/sql"
-	"e-commerce/internal/core/domain"
+	"e-commerce/internal/core/domain/models"
 	"e-commerce/internal/error"
 	"errors"
 	"fmt"
@@ -29,13 +29,16 @@ func (r *UserRepository) GetAuthoritiesByUserName(username string) ([]string, er
 				WHERE tb_user.login_username = $1`
 	err := r.Select(&authorities, query, username)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errors.New("authorities not found")
+		}
 		return nil, err
 	}
 	return authorities, nil
 }
-func (r *UserRepository) GetAuthenticationData(username string) (*domain.AuthenticatedUser, string, error) {
+func (r *UserRepository) GetAuthenticationData(username string) (user *models.AuthenticatedUser, hashedPassowd string, err error) {
 	var result struct {
-		domain.AuthenticatedUser
+		models.AuthenticatedUser
 		HashedPassword string `db:"password"`
 	}
 	query := `
@@ -43,10 +46,10 @@ func (r *UserRepository) GetAuthenticationData(username string) (*domain.Authent
 	FROM tb_user u
 	WHERE u.login_username = $1`
 
-	err := r.Get(&result, query, username)
+	err = r.Get(&result, query, username)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, "", nil
+			return nil, "", errors.New("user not found")
 		}
 		return nil, "", err
 	}
@@ -54,11 +57,11 @@ func (r *UserRepository) GetAuthenticationData(username string) (*domain.Authent
 	u := &result.AuthenticatedUser
 	return u, result.HashedPassword, nil
 }
-func (r *UserRepository) FindPaginatedWithTotalCount(params *domain.QueryParams) (*[]domain.User, domain.TotalCount, *httpError.ErrorParams) {
-	var usersDB []domain.UserDB
-	var users []domain.User
+func (r *UserRepository) FindPaginatedWithTotalCount(params *models.QueryParams) (*[]models.User, models.TotalCount, *httpError.ErrorParams) {
+	var usersDB []models.UserDB
+	var users []models.User
 	var errorParams = new(httpError.ErrorParams)
-	var total domain.TotalCount
+	var total models.TotalCount
 
 	countQuery := `SELECT COUNT(*) FROM tb_user`
 	err := r.Get(&total, countQuery)
@@ -72,29 +75,32 @@ func (r *UserRepository) FindPaginatedWithTotalCount(params *domain.QueryParams)
                     tb_user u
                 JOIN
                         tb_location l ON u.location_id = l.id
-				ORDER BY %s LIMIT $1 OFFSET $2`, params.Order)
+				ORDER BY %s
+				LIMIT $1 OFFSET $2`, params.Order)
 	err = r.Select(&usersDB, query, params.Limit, params.Offset)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, total, nil
+			errorParams.SetCustomError(fiber.StatusNotFound, "empty list")
+			return nil, total, errorParams
 		}
 		errorParams.SetDefaultParams(err)
 		return nil, total, errorParams
 	}
 	for _, userDB := range usersDB {
-		var user domain.User
-		err := user.NewUserByUserDB(&userDB)
+		var user models.User
+		err = user.NewUserByUserDB(&userDB)
 		if err != nil {
-			return nil, 0, nil
+			errorParams.SetDefaultParams(err)
+			return nil, 0, errorParams
 		}
 		users = append(users, user)
 	}
 	return &users, total, nil
 }
-func (r *UserRepository) FindByUserName(userName string) (*domain.User, *httpError.ErrorParams) {
+func (r *UserRepository) FindByUserName(userName string) (*models.User, *httpError.ErrorParams) {
 	var errorParams = new(httpError.ErrorParams)
-	var user = new(domain.User)
-	var userDB = new(domain.UserDB)
+	var user = new(models.User)
+	var userDB = new(models.UserDB)
 	query := `SELECT u.*, street_number, street_name, city, state, country, postcode, coordinates_latitude,
        coordinates_longitude, timezone_offset, timezone_description
 				FROM
@@ -118,10 +124,10 @@ func (r *UserRepository) FindByUserName(userName string) (*domain.User, *httpErr
 	}
 	return user, nil
 }
-func (r *UserRepository) FindById(id int) (*domain.User, *httpError.ErrorParams) {
+func (r *UserRepository) FindById(id int) (*models.User, *httpError.ErrorParams) {
 	var errorParams = new(httpError.ErrorParams)
-	var user = new(domain.User)
-	var userDB = new(domain.UserDB)
+	var user = new(models.User)
+	var userDB = new(models.UserDB)
 	query := `SELECT u.*, street_number, street_name, city, state, country, postcode, coordinates_latitude,
        coordinates_longitude, timezone_offset, timezone_description
 				FROM
@@ -145,7 +151,7 @@ func (r *UserRepository) FindById(id int) (*domain.User, *httpError.ErrorParams)
 	}
 	return user, nil
 }
-func (r *UserRepository) Insert(newUser *domain.NewUserRequest) (int, *httpError.ErrorParams) {
+func (r *UserRepository) Insert(newUser *models.UserFromRequest) (int, *httpError.ErrorParams) {
 	var errorParams = new(httpError.ErrorParams)
 	var user = newUser.User
 	tx, err := r.Beginx()
@@ -182,7 +188,7 @@ func (r *UserRepository) Insert(newUser *domain.NewUserRequest) (int, *httpError
 			login_password, login_salt, login_md5, login_sha1, login_sha256, dob_date, dob_age, 
 			registered_date, registered_age, phone, cell, id_name, id_value, picture_large, 
 			picture_medium, picture_thumbnail, nat, location_id
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, 
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18,
 			$19, $20, $21, $22, $23, $24, $25) RETURNING id`
 	err = tx.QueryRowx(userQuery,
 		user.Gender, user.Name.Title, user.Name.First, user.Name.Last, user.Email, user.Login.UUID,
@@ -237,4 +243,9 @@ func (r *UserRepository) Insert(newUser *domain.NewUserRequest) (int, *httpError
 		return 0, errorParams
 	}
 	return userID, nil
+}
+
+func (r *UserRepository) Update(update *models.UserFromRequest) *httpError.ErrorParams {
+	//TODO implement me
+	panic("implement me")
 }

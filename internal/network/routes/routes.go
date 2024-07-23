@@ -1,11 +1,11 @@
 package routes
 
 import (
-	"e-commerce/internal/handler"
+	"e-commerce/internal/network/handlers"
 	"github.com/gofiber/fiber/v2"
 )
 
-func Public(app *fiber.App, allHandlers *handler.Handlers) {
+func Public(app *fiber.App, allHandlers *handlers.Handlers) {
 	v1 := app.Group("/v1")
 	login := v1.Group("/login")
 	{
@@ -23,15 +23,18 @@ func Public(app *fiber.App, allHandlers *handler.Handlers) {
 	//}
 }
 
-func Private(app *fiber.App, allHandlers *handler.Handlers) {
+func Private(app *fiber.App, allHandlers *handlers.Handlers) {
 	v1 := app.Group("/v1")
 	user := v1.Group("/user")
 	{
+		user.Get("/me", allHandlers.UserHandler.GetMe)
+		user.Put("/me", allHandlers.UserHandler.UpdateMe)
+		user.Delete("/me", allHandlers.UserHandler.DeleteMe)
 		//ROLE ADMIN ONLY
 		user.Get("/", allHandlers.UserHandler.GetPaginatedList)
 		user.Get("/:id", allHandlers.UserHandler.Get)
 		user.Put("/:id", allHandlers.UserHandler.Update)
-		//user.Delete("/me", allHandlers.UserHandler.Delete)
+		user.Delete("/:id", allHandlers.UserHandler.Delete)
 		//user.Post("/", allHandlers.UserHandler.Post)
 		//user.Put("/:id", allHandlers.UserHandler.Update)
 		//user.Delete("/:id", allHandlers.UserHandler.Delete)

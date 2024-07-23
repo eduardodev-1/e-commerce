@@ -1,4 +1,4 @@
-package domain
+package models
 
 type Product struct {
 	ID          int64   `db:"id" json:"id,omitempty"`

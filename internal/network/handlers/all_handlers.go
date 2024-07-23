@@ -1,7 +1,7 @@
-package handler
+package handlers
 
 import (
-	"e-commerce/internal/core/services"
+	"e-commerce/internal/core/adapters/services"
 )
 
 type Handlers struct {

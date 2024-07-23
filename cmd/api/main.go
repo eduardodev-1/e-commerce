@@ -2,12 +2,12 @@ package main
 
 import (
 	"e-commerce/internal/config"
-	"e-commerce/internal/core/services"
+	"e-commerce/internal/core/adapters/repositories"
+	"e-commerce/internal/core/adapters/services"
 	"e-commerce/internal/database/postgres"
-	"e-commerce/internal/handler"
-	"e-commerce/internal/middleware"
-	"e-commerce/internal/repositories"
-	"e-commerce/internal/routes"
+	"e-commerce/internal/network/handlers"
+	"e-commerce/internal/network/middleware"
+	"e-commerce/internal/network/routes"
 	"log"
 	"os"
 )
@@ -19,7 +19,7 @@ func main() {
 
 	allServices := services.NewServices(allRepositories)
 
-	allHandlers := handler.NewHandlers(allServices)
+	allHandlers := handlers.NewHandlers(allServices)
 
 	app := config.GetFiberConfig()
 
