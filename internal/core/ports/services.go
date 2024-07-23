@@ -7,12 +7,13 @@ import (
 
 type UserService interface {
 	GetUserRoles(username string) ([]string, error)
-	Authenticate(credentials *domain.RequestCredentials) (*domain.AuthenticatedUser, error)
+	AuthenticateUserWithPasswordCredentials(credentials *domain.RequestCredentials) (*domain.LoginResponse, error)
 	GetPaginatedList(requestParams *domain.RequestParams) (*domain.Page, *httpError.ErrorParams)
-	Get(id int) (*domain.User, *httpError.ErrorParams)
+	Get(id string, userName string) (*domain.User, *httpError.ErrorParams)
+	CreateNewUser(newUser *domain.NewUserRequest) (id int, errorParams *httpError.ErrorParams)
 }
 type ProductService interface {
 	GetPaginatedList(requestParams *domain.RequestParams) (*domain.Page, *httpError.ErrorParams)
 	Get(id int) (*domain.Product, *httpError.ErrorParams)
-	Post(*domain.Product) (domain.IdToResponse, *httpError.ErrorParams)
+	Post(*domain.Product) (id int, errorParams *httpError.ErrorParams)
 }

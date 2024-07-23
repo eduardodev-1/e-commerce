@@ -1,10 +1,12 @@
 package services
 
 import (
+	"e-commerce/internal/auth"
 	"e-commerce/internal/core/domain"
 	"e-commerce/internal/core/ports"
 	httpError "e-commerce/internal/error"
-	"e-commerce/internal/utils"
+	"github.com/gofiber/fiber/v2"
+	"strconv"
 )
 
 type UserService struct {
@@ -21,7 +23,7 @@ func (s *UserService) GetUserRoles(username string) ([]string, error) {
 	return authorities, err
 
 }
-func (s *UserService) Authenticate(credentials *domain.RequestCredentials) (*domain.AuthenticatedUser, error) {
+func (s *UserService) AuthenticateUserWithPasswordCredentials(credentials *domain.RequestCredentials) (*domain.LoginResponse, error) {
 
 	user, hashedPassword, err := s.UserRepository.GetAuthenticationData(credentials.Username)
 	if err != nil {
@@ -31,11 +33,20 @@ func (s *UserService) Authenticate(credentials *domain.RequestCredentials) (*dom
 		Password:       credentials.Password,
 		HashedPassword: hashedPassword,
 	}
-	if err = utils.CheckPasswordRequest(passwordPair); err != nil {
+	if err = passwordPair.CheckPasswordRequest(); err != nil {
 		return nil, err
 	}
 
-	return user, nil
+	roles, err := s.GetUserRoles(user.Username)
+	if err != nil {
+		return nil, err
+	}
+	// Create JWToken
+	token, err := auth.NewJWToken(user.Id, user.Username, roles)
+	if err != nil {
+		return nil, err
+	}
+	return &domain.LoginResponse{Token: token}, nil
 }
 func (s *UserService) GetPaginatedList(requestParams *domain.RequestParams) (*domain.Page, *httpError.ErrorParams) {
 	page := new(domain.Page)
@@ -48,11 +59,37 @@ func (s *UserService) GetPaginatedList(requestParams *domain.RequestParams) (*do
 	page.SetResultParams(content, count)
 	return page, nil
 }
-
-func (s *UserService) Get(id int) (*domain.User, *httpError.ErrorParams) {
-	product, errorParams := s.UserRepository.FindById(id)
+func (s *UserService) Get(id string, userName string) (*domain.User, *httpError.ErrorParams) {
+	if id == "me" {
+		user, errorParams := s.UserRepository.FindByUserName(userName)
+		if errorParams != nil {
+			return nil, errorParams
+		}
+		return user, nil
+	}
+	idToInt, err := strconv.Atoi(id)
+	if err != nil {
+		return nil, &httpError.ErrorParams{
+			Message: "invalid id",
+			Status:  fiber.StatusBadRequest,
+		}
+	}
+	user, errorParams := s.UserRepository.FindById(idToInt)
 	if errorParams != nil {
 		return nil, errorParams
 	}
-	return product, nil
+	return user, nil
+}
+func (s *UserService) CreateNewUser(newUser *domain.NewUserRequest) (int, *httpError.ErrorParams) {
+	errorParams := new(httpError.ErrorParams)
+	errorParams = newUser.CheckUserType()
+	if errorParams != nil {
+		return 0, errorParams
+	}
+	errorParams = newUser.SetEncryptedPassword()
+	if errorParams != nil {
+		return 0, errorParams
+	}
+	newUserId, errorParams := s.UserRepository.Insert(newUser)
+	return newUserId, errorParams
 }

@@ -4,7 +4,7 @@ import (
 	"e-commerce/internal/auth"
 	"e-commerce/internal/core/domain"
 	"e-commerce/internal/core/ports"
-	"fmt"
+	httpError "e-commerce/internal/error"
 	"github.com/go-oauth2/oauth2/v4"
 
 	"github.com/gofiber/fiber/v2"
@@ -21,49 +21,50 @@ func NewLoginHandler(userService ports.UserService) *LoginHandler {
 	}
 }
 
-func (h *LoginHandler) Authenticate(c *fiber.Ctx) error {
-	err := auth.CheckAppCredentials(c)
+func (h *LoginHandler) Authenticate(ctx *fiber.Ctx) error {
+	err := auth.CheckAppCredentials(ctx)
 	if err != nil {
 		return err
 	}
-
-	loginRequest := new(domain.RequestCredentials)
-	if err = c.BodyParser(loginRequest); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+	authenticateRequest := new(domain.RequestCredentials)
+	if err = ctx.BodyParser(authenticateRequest); err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
-
-	var user = new(domain.AuthenticatedUser)
-	grantType := oauth2.GrantType(loginRequest.GrantType)
-
+	var response interface{}
+	// Select authentication according to grand type.
+	grantType := oauth2.GrantType(authenticateRequest.GrantType)
 	switch grantType {
 	case oauth2.PasswordCredentials:
-		user, err = h.UserService.Authenticate(loginRequest)
+		response, err = h.UserService.AuthenticateUserWithPasswordCredentials(authenticateRequest)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": err.Error(),
 			})
 		}
 	default:
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid grantType",
 		})
 	}
-	roles, err := h.UserService.GetUserRoles(user.Username)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
-		})
-	}
-	fmt.Println(roles)
-	// Criar JWToken
-	token, err := auth.NewJWToken(user.Id, user.Username, roles)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
-		})
-	}
 
-	return c.Status(fiber.StatusOK).JSON(domain.LoginResponse{Token: token})
+	return ctx.Status(fiber.StatusOK).JSON(response)
+}
+
+func (h *LoginHandler) Post(ctx *fiber.Ctx) error {
+	newUser := new(domain.NewUserRequest)
+	customError := httpError.HttpCustomError{Ctx: ctx}
+	errorParams := new(httpError.ErrorParams)
+	if err := ctx.BodyParser(newUser); err != nil {
+		errorParams.SetDefaultParams(err)
+		return customError.NewHttpError(errorParams)
+	}
+	_, errorParams = h.UserService.CreateNewUser(newUser)
+	if errorParams != nil {
+		return customError.NewHttpError(errorParams)
+	}
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"success": true,
+	})
 }

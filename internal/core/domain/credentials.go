@@ -9,3 +9,7 @@ type RequestCredentials struct {
 type LoginResponse struct {
 	Token string `json:"token"`
 }
+type Authority struct {
+	Id        int    `json:"id"`
+	Authority string `json:"authority"`
+}

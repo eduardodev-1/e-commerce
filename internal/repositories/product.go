@@ -58,11 +58,11 @@ func (r ProductRepository) FindById(id int) (*domain.Product, *fiber_error.Error
 	}
 	return product, nil
 }
-func (r ProductRepository) Insert(product *domain.Product) (domain.IdToResponse, *fiber_error.ErrorParams) {
+func (r ProductRepository) Insert(product *domain.Product) (int, *fiber_error.ErrorParams) {
 	var errorParams = new(fiber_error.ErrorParams)
 	query := `INSERT INTO tb_product (price, description, img_url, name, seller, quantity)
 	VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`
-	var id domain.IdToResponse
+	var id int
 	err := r.QueryRow(query, product.Price, product.Description, product.ImgURL).Scan(&id)
 	if err != nil {
 		errorParams.SetDefaultParams(err)

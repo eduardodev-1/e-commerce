@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"e-commerce/internal/core/domain"
 	"e-commerce/internal/core/ports"
 	"e-commerce/internal/error"
 	"github.com/gofiber/fiber/v2"
@@ -28,16 +29,34 @@ func (h UserHandler) GetPaginatedList(ctx *fiber.Ctx) error {
 
 func (h UserHandler) Get(ctx *fiber.Ctx) error {
 	fiberError := httpError.HttpCustomError{Ctx: ctx}
-	id, err := ctx.ParamsInt("id", 0)
-	if err != nil || id <= 0 {
-		errorParams := new(httpError.ErrorParams)
-		errorParams.Message = "invalid id"
-		errorParams.Status = fiber.StatusBadRequest
-		return fiberError.NewHttpError(errorParams)
-	}
-	product, errorParams := h.UserService.Get(id)
+	var userName string
+	id := ctx.Params("id", "")
+	userName = ctx.Locals("username").(string)
+	user, errorParams := h.UserService.Get(id, userName)
 	if errorParams != nil {
 		return fiberError.NewHttpError(errorParams)
 	}
-	return ctx.JSON(product)
+	return ctx.JSON(user)
+}
+
+func (h UserHandler) Update(ctx *fiber.Ctx) error {
+	fiberError := httpError.HttpCustomError{Ctx: ctx}
+	userUpdateRequest = new(domain.UserUpdateRequest)
+	var userName string
+	id := ctx.Params("id", "")
+	userName = ctx.Locals("username").(string)
+	err := ctx.BodyParser(userToUpdate)
+	if err != nil {
+		return fiberError.NewHttpError(&httpError.ErrorParams{
+			Message: "Failed to parse request body",
+			Status:  fiber.StatusBadRequest,
+		})
+	}
+	errorParams := h.UserService.Update(id, userName, userToUpdate)
+	if errorParams != nil {
+		return fiberError.NewHttpError(errorParams)
+	}
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"success": true,
+	})
 }
