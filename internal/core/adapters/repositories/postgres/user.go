@@ -3,7 +3,7 @@ package postgres
 import (
 	"database/sql"
 	"e-commerce/internal/core/domain/models"
-	"e-commerce/internal/error"
+	"e-commerce/internal/httperror"
 	"errors"
 	"fmt"
 	"github.com/gofiber/fiber/v2"
@@ -20,7 +20,7 @@ func NewUserRepository(db *sqlx.DB) *UserRepository {
 		db,
 	}
 }
-func (r *UserRepository) GetAuthoritiesByUserName(username string) ([]string, error) {
+func (r *UserRepository) GetAuthoritiesByUsername(username string) ([]string, error) {
 	var authorities []string
 	query := `SELECT authority
 				FROM tb_role
@@ -36,7 +36,8 @@ func (r *UserRepository) GetAuthoritiesByUserName(username string) ([]string, er
 	}
 	return authorities, nil
 }
-func (r *UserRepository) GetAuthenticationData(username string) (user *models.AuthenticatedUser, hashedPassowd string, err error) {
+func (r *UserRepository) GetAuthenticationData(username string) (user *models.AuthenticatedUser, hashedpassword string, errorParams *httpError.ErrorParams) {
+	errorParams = new(httpError.ErrorParams)
 	var result struct {
 		models.AuthenticatedUser
 		HashedPassword string `db:"password"`
@@ -46,12 +47,13 @@ func (r *UserRepository) GetAuthenticationData(username string) (user *models.Au
 	FROM tb_user u
 	WHERE u.login_username = $1`
 
-	err = r.Get(&result, query, username)
+	err := r.Get(&result, query, username)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, "", errors.New("user not found")
+			errorParams.SetCustomError(fiber.StatusNotFound, "user not found")
+			return nil, "", errorParams
 		}
-		return nil, "", err
+		return nil, "", errorParams
 	}
 
 	u := &result.AuthenticatedUser
@@ -97,7 +99,7 @@ func (r *UserRepository) FindPaginatedWithTotalCount(params *models.QueryParams)
 	}
 	return &users, total, nil
 }
-func (r *UserRepository) FindByUserName(userName string) (*models.User, *httpError.ErrorParams) {
+func (r *UserRepository) FindByUsername(userName string) (*models.User, *httpError.ErrorParams) {
 	var errorParams = new(httpError.ErrorParams)
 	var user = new(models.User)
 	var userDB = new(models.UserDB)
@@ -245,7 +247,179 @@ func (r *UserRepository) Insert(newUser *models.UserFromRequest) (int, *httpErro
 	return userID, nil
 }
 
-func (r *UserRepository) Update(update *models.UserFromRequest) *httpError.ErrorParams {
-	//TODO implement me
-	panic("implement me")
+func (r *UserRepository) Update(update *models.UserUpdateRequest) *httpError.ErrorParams {
+	errorParams := new(httpError.ErrorParams)
+	tx, err := r.DB.Begin()
+	if err != nil {
+		errorParams.SetDefaultParams(err)
+		return errorParams
+	}
+
+	var locationID int
+	userID := update.User.ID
+	err = r.Get(&locationID, "SELECT location_id FROM tb_user WHERE id = $1", userID)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	updateLocationQuery := `
+		UPDATE
+			tb_location
+		SET 
+		    street_number=$1, street_name=$2, city=$3, state=$4, country=$5, postcode=$6, coordinates_latitude=$7,
+		    coordinates_longitude=$8, timezone_offset=$9, timezone_description=$10
+		WHERE
+		    id = $11`
+	location := update.User.Location
+	id := update.User.ID
+	result, err := tx.Exec(updateLocationQuery, location.Street.Number, location.Street.Name, location.City, location.State,
+		location.Country, location.Postcode, location.Coordinates.Latitude, location.Coordinates.Longitude,
+		location.Timezone.Offset, location.Timezone.Description, id)
+	if err != nil {
+		errorParams.SetDefaultParams(err)
+		return errorParams
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		errorParams.SetDefaultParams(err)
+		return errorParams
+	}
+	if rowsAffected == 0 {
+		rollbackerror := tx.Rollback()
+		if rollbackerror != nil {
+			errorParams.SetDefaultParams(errors.New("falha ao tentar fazer rollback"))
+			return errorParams
+		}
+		errorParams.SetDefaultParams(errors.New("nenhuma localização encontrada para este usuário"))
+		return errorParams
+	}
+	updateUserQuery := `
+	UPDATE
+		tb_user
+	SET
+	    gender=$1, name_first=$2, name_last=$3, email=$4, login_uuid=$5, login_username=$6, login_password=$7, login_salt=$8,
+	    login_md5=$9, login_sha1=$10, login_sha256=$11, dob_date=$12, dob_age=$13, registered_date=$14, registered_age=$15,
+	    phone=$16, cell=$17, id_name=$18, id_value=$19, picture_large=$20, picture_medium=$21, picture_thumbnail=$22,
+	    nat=$23, location_id=$24
+	WHERE id = $25`
+	user := update.User
+	result, err = tx.Exec(updateUserQuery, user.Gender, user.Name.First, user.Name.Last, user.Email, user.Login.UUID, user.Login.Username,
+		user.Login.Password, user.Login.Salt, user.Login.MD5, user.Login.SHA1, user.Login.SHA256, user.Dob.Date, user.Dob.Age,
+		user.Registered.Date, user.Registered.Age, user.Phone, user.Cell, user.Id.Name, user.Id.Value, user.Picture.Large, user.Picture.Medium,
+		user.Picture.Thumbnail, user.Nat, locationID, userID)
+	if err != nil {
+		errorParams.SetDefaultParams(err)
+		return errorParams
+	}
+	rowsAffected, err = result.RowsAffected()
+	if err != nil {
+		errorParams.SetDefaultParams(err)
+		return errorParams
+	}
+	if rowsAffected == 0 {
+		rollbackerror := tx.Rollback()
+		if rollbackerror != nil {
+			errorParams.SetDefaultParams(errors.New("falha ao tentar fazer rollback"))
+			return errorParams
+		}
+		errorParams.SetDefaultParams(errors.New("nenhum usuario encontrado com este id"))
+		return errorParams
+	}
+	err = tx.Commit()
+	if err != nil {
+		rollbackerror := tx.Rollback()
+		if rollbackerror != nil {
+			errorParams.SetDefaultParams(errors.New("falha ao tentar fazer rollback"))
+			return errorParams
+		}
+		errorParams.SetDefaultParams(errors.New("falha ao commitar transação"))
+		return errorParams
+	}
+	return nil
+}
+
+func (r *UserRepository) Delete(id int) *httpError.ErrorParams {
+	errorParams := new(httpError.ErrorParams)
+	tx, err := r.DB.Begin()
+	if err != nil {
+		errorParams.SetDefaultParams(err)
+		return errorParams
+	}
+	//recuperar o location_id
+	var locationID int
+	err = r.Get(&locationID, "SELECT location_id FROM tb_user WHERE id = $1", id)
+	if err != nil {
+		rollbackError := tx.Rollback()
+		if rollbackError != nil {
+			errorParams.SetDefaultParams(rollbackError)
+			return errorParams
+		}
+		errorParams.SetDefaultParams(err)
+		return errorParams
+	}
+
+	// Deletar localização
+	deleteLocationQuery := `DELETE FROM tb_location WHERE id = $1`
+	result, err := tx.Exec(deleteLocationQuery, locationID)
+	if err != nil {
+		rollbackError := tx.Rollback()
+		if rollbackError != nil {
+			errorParams.SetDefaultParams(rollbackError)
+			return errorParams
+		}
+		errorParams.SetDefaultParams(err)
+		return errorParams
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil || rowsAffected == 0 {
+		rollbackError := tx.Rollback()
+		if rollbackError != nil {
+			errorParams.SetDefaultParams(rollbackError)
+			return errorParams
+		}
+		if err == nil {
+			err = errors.New("nenhuma localização encontrada para este usuário")
+		}
+		errorParams.SetDefaultParams(err)
+		return errorParams
+	}
+
+	// Deletar usuário
+	deleteUserQuery := `DELETE FROM tb_user WHERE id = $1`
+	result, err = tx.Exec(deleteUserQuery, id)
+	if err != nil {
+		rollbackError := tx.Rollback()
+		if rollbackError != nil {
+			errorParams.SetDefaultParams(rollbackError)
+			return errorParams
+		}
+		errorParams.SetDefaultParams(err)
+		return errorParams
+	}
+	rowsAffected, err = result.RowsAffected()
+	if err != nil || rowsAffected == 0 {
+		rollbackError := tx.Rollback()
+		if rollbackError != nil {
+			errorParams.SetDefaultParams(rollbackError)
+			return errorParams
+		}
+		if err == nil {
+			err = errors.New("nenhum usuário encontrado com este ID")
+		}
+		errorParams.SetDefaultParams(err)
+		return errorParams
+	}
+
+	// Commit da transação
+	err = tx.Commit()
+	if err != nil {
+		rollbackError := tx.Rollback()
+		if rollbackError != nil {
+			errorParams.SetDefaultParams(rollbackError)
+			return errorParams
+		}
+		errorParams.SetDefaultParams(err)
+		return errorParams
+	}
+
+	return nil
 }

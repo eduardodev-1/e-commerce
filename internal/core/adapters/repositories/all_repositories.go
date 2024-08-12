@@ -22,14 +22,22 @@ func NewRepositories(db *models.DB) *Repositories {
 	switch db.Type {
 	case Postgresql:
 		postgresDB := db.Db.(*sqlx.DB)
-		return &Repositories{
-			UserRepository:    postgres.NewUserRepository(postgresDB),
-			ProductRepository: postgres.NewProductRepository(postgresDB),
-		}
+		return NewPostgreeRepositories(postgresDB)
 	case Mongodb:
-		//instanciar repositories do mongodb, por exemplo
+		return NewMongoDBRepositories(db)
 	default:
 		log.Fatal("unsupported db type")
 	}
 	return nil
+}
+
+func NewMongoDBRepositories(db *models.DB) *Repositories {
+	return nil
+}
+
+func NewPostgreeRepositories(postgresDB *sqlx.DB) *Repositories {
+	return &Repositories{
+		UserRepository:    postgres.NewUserRepository(postgresDB),
+		ProductRepository: postgres.NewProductRepository(postgresDB),
+	}
 }

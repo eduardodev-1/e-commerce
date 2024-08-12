@@ -3,7 +3,8 @@ package handlers
 import (
 	"e-commerce/internal/core/domain/models"
 	"e-commerce/internal/core/ports"
-	"e-commerce/internal/error"
+	"e-commerce/internal/httperror"
+	"e-commerce/internal/network/middleware"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -45,6 +46,8 @@ func (h ProductHandler) Get(ctx *fiber.Ctx) error {
 
 func (h ProductHandler) Post(ctx *fiber.Ctx) error {
 	fiberError := httpError.HttpCustomError{Ctx: ctx}
+	username := ctx.Locals("username").(string)
+	authorities := ctx.Locals("authorities").([]string)
 	var product = new(models.Product)
 	if err := ctx.BodyParser(&product); err != nil {
 		return fiberError.NewHttpError(&httpError.ErrorParams{
@@ -52,7 +55,8 @@ func (h ProductHandler) Post(ctx *fiber.Ctx) error {
 			Status:  fiber.StatusBadRequest,
 		})
 	}
-	id, errorParams := h.ProductService.Post(product)
+	isAdmin := middleware.HasRole(authorities, "ROLE_ADMIN")
+	id, errorParams := h.ProductService.Post(product, username, isAdmin)
 	if errorParams != nil {
 		return fiberError.NewHttpError(errorParams)
 	}
@@ -62,4 +66,55 @@ func (h ProductHandler) Post(ctx *fiber.Ctx) error {
 		"message": "product created successfully",
 		"id":      id,
 	})
+}
+
+func (h ProductHandler) Update(ctx *fiber.Ctx) error {
+	fiberError := httpError.HttpCustomError{Ctx: ctx}
+	id, err := ctx.ParamsInt("id", 0)
+	if err != nil || id <= 0 {
+		return fiberError.NewHttpError(&httpError.ErrorParams{
+			Message: "invalid id",
+			Status:  fiber.StatusBadRequest,
+		})
+	}
+	username := ctx.Locals("username").(string)
+	var product = new(models.Product)
+	if err := ctx.BodyParser(&product); err != nil {
+		return fiberError.NewHttpError(&httpError.ErrorParams{
+			Message: "Failed to parse request body",
+			Status:  fiber.StatusBadRequest,
+		})
+	}
+	product.ID = int64(id)
+	authorities := ctx.Locals("authorities").([]string)
+	isAdmin := middleware.HasRole(authorities, "ROLE_ADMIN")
+	errorParams := h.ProductService.Update(product, username, isAdmin)
+	if errorParams != nil {
+		return fiberError.NewHttpError(errorParams)
+	}
+
+	// Retornar resposta de sucesso
+	return ctx.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"message": "product updated successfully",
+		"id":      id,
+	})
+}
+
+func (h ProductHandler) Delete(ctx *fiber.Ctx) error {
+	fiberError := httpError.HttpCustomError{Ctx: ctx}
+	username := ctx.Locals("username").(string)
+	id, err := ctx.ParamsInt("id", 0)
+	if err != nil || id <= 0 {
+		return fiberError.NewHttpError(&httpError.ErrorParams{
+			Message: "invalid id",
+			Status:  fiber.StatusBadRequest,
+		})
+	}
+	authorities := ctx.Locals("authorities").([]string)
+	isAdmin := middleware.HasRole(authorities, "ROLE_ADMIN")
+	errorParams := h.ProductService.Delete(id, username, isAdmin)
+	if errorParams != nil {
+		return fiberError.NewHttpError(errorParams)
+	}
+	return ctx.SendStatus(fiber.StatusNoContent)
 }

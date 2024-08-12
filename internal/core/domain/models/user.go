@@ -1,7 +1,6 @@
 package models
 
 import (
-	httpError "e-commerce/internal/error"
 	"errors"
 	"gopkg.in/encoder.v1"
 )
@@ -11,13 +10,13 @@ type AuthenticatedUser struct {
 	Username string `json:"username"  form:"username"  db:"username"`
 }
 type PasswordPair struct {
-	Password       string
-	HashedPassword string
+	OriginalPassword string
+	HashedPassword   string
 }
 
-func (p *PasswordPair) CheckPasswordRequest() error {
+func (p *PasswordPair) CheckRequestPassword() error {
 	encoding := encoder.NewBcryptEncoder()
-	verify, err := encoding.Verify(p.HashedPassword, p.Password)
+	verify, err := encoding.Verify(p.HashedPassword, p.OriginalPassword)
 	if err != nil {
 		return err
 	}
@@ -29,7 +28,7 @@ func (p *PasswordPair) CheckPasswordRequest() error {
 func (p *PasswordPair) SetOriginalPasswordAndGetHashedPassword(originalPassword string) (string, error) {
 	encryptor := encoder.NewBcryptEncoder()
 	hashedPassword, err := encryptor.Encode(originalPassword)
-	p.Password = originalPassword
+	p.OriginalPassword = originalPassword
 	p.HashedPassword = hashedPassword
 	return hashedPassword, err
 }
@@ -179,40 +178,26 @@ func (u *User) NewUserByUserDB(userDB *UserDB) error {
 	return nil
 }
 
+type PasswordFields struct {
+	UpdatePassword bool   `json:"update_password"`
+	NewPassword    string `json:"new_password"`
+}
+
+type UserFields struct {
+	UpdateUsername bool   `json:"update_user_name"`
+	NewUsername    string `json:"new_user_name"`
+}
+
 type UserUpdateRequest struct {
-	User       User   `json:"user"`
-	UpdateType string `json:"user_type"`
+	User           User           `json:"user"`
+	UserType       string         `json:"user_type"`
+	PasswordFields PasswordFields `json:"password_fields"`
+	UserFields     UserFields     `json:"user_fields"`
 }
 
 type UserFromRequest struct {
 	User     User   `json:"user"`
 	UserType string `json:"user_type"`
-}
-
-const (
-	Seller = "seller"
-	Client = "client"
-)
-
-func (r *UserFromRequest) CheckUserType() *httpError.ErrorParams {
-	errorParams := new(httpError.ErrorParams)
-	if r.UserType != Seller && r.UserType != Client {
-		errorParams.SetDefaultParams(errors.New("invalid User type"))
-		return errorParams
-	}
-	return nil
-}
-
-func (r *UserFromRequest) EncryptPassword() *httpError.ErrorParams {
-	var err error
-	var errorParams = new(httpError.ErrorParams)
-	var passwordPair = new(PasswordPair)
-	r.User.Login.Password, err = passwordPair.SetOriginalPasswordAndGetHashedPassword(r.User.Login.Password)
-	if err != nil {
-		errorParams.SetDefaultParams(err)
-		return errorParams
-	}
-	return nil
 }
 
 type UserDB struct {

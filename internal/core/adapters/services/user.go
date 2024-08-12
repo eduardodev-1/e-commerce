@@ -4,7 +4,8 @@ import (
 	"e-commerce/internal/auth"
 	"e-commerce/internal/core/domain/models"
 	"e-commerce/internal/core/ports"
-	httpError "e-commerce/internal/error"
+	httpError "e-commerce/internal/httperror"
+	"e-commerce/internal/utils"
 )
 
 type UserService struct {
@@ -17,29 +18,35 @@ func NewUserService(userRepo ports.UserRepository) *UserService {
 	}
 }
 func (s *UserService) GetUserRoles(username string) ([]string, error) {
-	authorities, err := s.UserRepository.GetAuthoritiesByUserName(username)
+	authorities, err := s.UserRepository.GetAuthoritiesByUsername(username)
 	return authorities, err
 
 }
-func (s *UserService) AuthenticateUserWithPasswordCredentials(credentials *models.RequestCredentials) (*models.LoginResponse, error) {
-	user, hashedPassword, err := s.UserRepository.GetAuthenticationData(credentials.Username)
-	if err != nil {
-		return nil, err
+func (s *UserService) AuthenticateUserWithPasswordCredentials(credentials *models.RequestCredentials) (*models.LoginResponse, *httpError.ErrorParams) {
+	user, hashedPassword, errorParams := s.UserRepository.GetAuthenticationData(credentials.Username)
+	if errorParams != nil {
+		return nil, errorParams
 	}
 	passwordPair := models.PasswordPair{
-		Password:       credentials.Password,
-		HashedPassword: hashedPassword,
+		OriginalPassword: credentials.Password,
+		HashedPassword:   hashedPassword,
 	}
-	if err = passwordPair.CheckPasswordRequest(); err != nil {
-		return nil, err
+	if err := passwordPair.CheckRequestPassword(); err != nil {
+		errorParams = &httpError.ErrorParams{}
+		errorParams.SetDefaultParams(err)
+		return nil, errorParams
 	}
 	roles, err := s.GetUserRoles(user.Username)
 	if err != nil {
-		return nil, err
+		errorParams = &httpError.ErrorParams{}
+		errorParams.SetDefaultParams(err)
+		return nil, errorParams
 	}
 	token, err := auth.NewJWToken(user.Id, user.Username, roles)
 	if err != nil {
-		return nil, err
+		errorParams = &httpError.ErrorParams{}
+		errorParams.SetDefaultParams(err)
+		return nil, errorParams
 	}
 	return &models.LoginResponse{Token: token}, nil
 }
@@ -63,31 +70,60 @@ func (s *UserService) Get(id int) (*models.User, *httpError.ErrorParams) {
 }
 func (s *UserService) CreateNewUser(newUser *models.UserFromRequest) (int, *httpError.ErrorParams) {
 	errorParams := new(httpError.ErrorParams)
-	errorParams = newUser.CheckUserType()
+	errorParams = utils.CheckUserType(newUser.UserType)
 	if errorParams != nil {
 		return 0, errorParams
 	}
-	errorParams = newUser.EncryptPassword()
+	newUser.User.Login.Password, errorParams = utils.EncryptPassword(newUser.User.Login.Password)
 	if errorParams != nil {
 		return 0, errorParams
 	}
 	newUserId, errorParams := s.UserRepository.Insert(newUser)
 	return newUserId, errorParams
 }
-func (s *UserService) Update(userToUpdate *models.UserFromRequest) *httpError.ErrorParams {
+func (s *UserService) Update(username string, userToUpdate *models.UserUpdateRequest) *httpError.ErrorParams {
 	errorParams := new(httpError.ErrorParams)
-	errorParams = userToUpdate.CheckUserType()
+	errorParams = utils.CheckUserType(userToUpdate.UserType)
 	if errorParams != nil {
 		return errorParams
 	}
-	errorParams = userToUpdate.EncryptPassword()
+	errorParams = utils.CheckUsername(userToUpdate.User.Login.Username, username)
 	if errorParams != nil {
 		return errorParams
 	}
-	errorParams := s.UserRepository.Update(userToUpdate)
+	_, hashedPassword, errorParams := s.UserRepository.GetAuthenticationData(username)
+	if errorParams != nil {
+		return errorParams
+	}
+	passwordPair := models.PasswordPair{
+		OriginalPassword: userToUpdate.User.Login.Password,
+		HashedPassword:   hashedPassword,
+	}
+	if err := passwordPair.CheckRequestPassword(); err != nil {
+		errorParams = &httpError.ErrorParams{}
+		errorParams.SetDefaultParams(err)
+		return errorParams
+	}
+	if userToUpdate.PasswordFields.UpdatePassword {
+		userToUpdate.User.Login.Password = userToUpdate.PasswordFields.NewPassword
+	}
+	if userToUpdate.UserFields.UpdateUsername {
+		userToUpdate.User.Login.Username = userToUpdate.UserFields.NewUsername
+	}
+	userToUpdate.User.Login.Password, errorParams = utils.EncryptPassword(userToUpdate.User.Login.Password)
+	if errorParams != nil {
+		return errorParams
+	}
+	errorParams = s.UserRepository.Update(userToUpdate)
+	if errorParams != nil {
+		return errorParams
+	}
 	return nil
 }
 func (s *UserService) Delete(id int) *httpError.ErrorParams {
-	//TODO implement me
-	panic("implement me")
+	errorParams := s.UserRepository.Delete(id)
+	if errorParams != nil {
+		return errorParams
+	}
+	return nil
 }
