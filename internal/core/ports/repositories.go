@@ -12,6 +12,13 @@ type ProductRepository interface {
 	Update(product *models.Product, username string, isAdmin bool) *httpError.ErrorParams
 	Delete(id int, username string, isAdmin bool) *httpError.ErrorParams
 }
+type CategoryRepository interface {
+	FindPaginatedWithTotalCount(params *models.QueryParams) (*[]models.Category, models.TotalCount, *httpError.ErrorParams)
+	FindById(id int) (*models.Category, *httpError.ErrorParams)
+	Insert(category *models.Category) (id int, errorParams *httpError.ErrorParams)
+	Update(category *models.Category) *httpError.ErrorParams
+	Delete(id int) *httpError.ErrorParams
+}
 type UserRepository interface {
 	GetAuthoritiesByUsername(username string) ([]string, error)
 	GetAuthenticationData(username string) (user *models.AuthenticatedUser, hashedpassword string, errorParams *httpError.ErrorParams)

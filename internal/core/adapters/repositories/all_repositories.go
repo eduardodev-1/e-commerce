@@ -14,11 +14,12 @@ const (
 )
 
 type Repositories struct {
-	UserRepository    ports.UserRepository
-	ProductRepository ports.ProductRepository
+	UserRepository     ports.UserRepository
+	ProductRepository  ports.ProductRepository
+	CategoryRepository ports.CategoryRepository
 }
 
-func NewRepositories(db *models.DB) *Repositories {
+func NewRepositories(db *models.DataBase) *Repositories {
 	switch db.Type {
 	case Postgresql:
 		postgresDB := db.Db.(*sqlx.DB)
@@ -30,14 +31,13 @@ func NewRepositories(db *models.DB) *Repositories {
 	}
 	return nil
 }
-
-func NewMongoDBRepositories(db *models.DB) *Repositories {
-	return nil
-}
-
 func NewPostgreeRepositories(postgresDB *sqlx.DB) *Repositories {
 	return &Repositories{
-		UserRepository:    postgres.NewUserRepository(postgresDB),
-		ProductRepository: postgres.NewProductRepository(postgresDB),
+		UserRepository:     postgres.NewUserRepository(postgresDB),
+		ProductRepository:  postgres.NewProductRepository(postgresDB),
+		CategoryRepository: postgres.NewCategoryRepository(postgresDB),
 	}
+}
+func NewMongoDBRepositories(db *models.DataBase) *Repositories {
+	return nil
 }

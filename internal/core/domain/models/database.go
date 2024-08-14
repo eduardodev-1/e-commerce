@@ -1,6 +1,6 @@
 package models
 
-type DB struct {
+type DataBase struct {
 	Db   interface{}
 	Type string
 }

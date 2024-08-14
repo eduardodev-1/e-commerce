@@ -21,7 +21,7 @@ type dbParams struct {
 	SslMode  string
 }
 
-func NewPsqlConn() *models.DB {
+func NewPsqlConn() *models.DataBase {
 	params := dbParams{
 		Host:     os.Getenv("DB_HOST"),
 		Port:     os.Getenv("DB_PORT"),
@@ -50,7 +50,7 @@ func NewPsqlConn() *models.DB {
 			log.Fatal("Failed to execute schema.sql:", err)
 		}
 	}
-	return &models.DB{
+	return &models.DataBase{
 		Db:   db,
 		Type: repositories.Postgresql,
 	}

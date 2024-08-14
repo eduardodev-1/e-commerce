@@ -8,7 +8,7 @@ import (
 	_ "github.com/golang-jwt/jwt"
 )
 
-func AuthMiddleware(ctx *fiber.Ctx) error {
+func IsAuthenticatedMiddleware(ctx *fiber.Ctx) error {
 	headerAuth := strings.SplitAfter(ctx.Get("Authorization"), "Bearer ")
 	var tokenString = ""
 	if len(headerAuth) == 2 {

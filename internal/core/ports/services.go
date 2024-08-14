@@ -21,3 +21,10 @@ type ProductService interface {
 	Update(product *models.Product, username string, isAdmin bool) *httpError.ErrorParams
 	Delete(id int, username string, isAdmin bool) *httpError.ErrorParams
 }
+type CategoryService interface {
+	GetPaginatedList(requestParams *models.RequestParams) (*models.Page, *httpError.ErrorParams)
+	Get(id int) (*models.Category, *httpError.ErrorParams)
+	Post(category *models.Category) (id int, errorParams *httpError.ErrorParams)
+	Update(category *models.Category) *httpError.ErrorParams
+	Delete(id int) *httpError.ErrorParams
+}

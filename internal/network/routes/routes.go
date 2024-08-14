@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"e-commerce/internal/network/handlers"
+	"e-commerce/internal/core/adapters/handlers"
 	mid "e-commerce/internal/network/middleware"
 	"github.com/gofiber/fiber/v2"
 )
@@ -18,10 +18,11 @@ func Public(app *fiber.App, allHandlers *handlers.Handlers) {
 		product.Get("/", allHandlers.ProductHandler.GetPaginatedList)
 		product.Get("/:id", allHandlers.ProductHandler.Get)
 	}
-	//categories := v1.Group("/category")
-	//{
-	//	//categories.Get("/", allHandlers.CategoryHandler.Get)
-	//}
+	categories := v1.Group("/category")
+	{
+		categories.Get("/", allHandlers.CategoryHandler.GetPaginatedList)
+		categories.Get("/:id", allHandlers.CategoryHandler.Get)
+	}
 }
 
 func Private(app *fiber.App, allHandlers *handlers.Handlers) {
@@ -41,5 +42,11 @@ func Private(app *fiber.App, allHandlers *handlers.Handlers) {
 		product.Post("/", mid.AuthorizationMiddleware("ROLE_ADMIN", "ROLE_SELLER"), allHandlers.ProductHandler.Post)
 		product.Put("/:id", mid.AuthorizationMiddleware("ROLE_ADMIN", "ROLE_SELLER"), allHandlers.ProductHandler.Update)
 		product.Delete("/:id", mid.AuthorizationMiddleware("ROLE_ADMIN", "ROLE_SELLER"), allHandlers.ProductHandler.Delete)
+	}
+	categories := v1.Group("/category")
+	{
+		categories.Post("/", mid.AuthorizationMiddleware("ROLE_ADMIN", "ROLE_SELLER"), allHandlers.CategoryHandler.Post)
+		categories.Put("/:id", mid.AuthorizationMiddleware("ROLE_ADMIN"), allHandlers.CategoryHandler.Update)
+		categories.Delete("/:id", mid.AuthorizationMiddleware("ROLE_ADMIN"), allHandlers.CategoryHandler.Delete)
 	}
 }
