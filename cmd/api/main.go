@@ -1,13 +1,11 @@
-package main
+package routes
 
 import (
-	"e-commerce/internal/config"
 	"e-commerce/internal/core/adapters/handlers"
 	"e-commerce/internal/core/adapters/repositories"
-	"e-commerce/internal/core/adapters/services"
-	"e-commerce/internal/database/postgres"
-	"e-commerce/internal/network/middleware"
-	"e-commerce/internal/network/routes"
+	"e-commerce/internal/core/domain/services"
+	"e-commerce/internal/infra/config"
+	"e-commerce/internal/infra/database/postgres"
 	"log"
 	"os"
 )
@@ -23,14 +21,13 @@ func main() {
 
 	app := config.GetFiberConfig()
 
-	routes.Public(app, allHandlers)
-	app.Use(middleware.IsAuthenticatedMiddleware)
-	routes.Private(app, allHandlers)
+	Public(app, allHandlers)
+
+	Private(app, allHandlers)
 
 	PORT := os.Getenv("FIBER_PORT")
-	err := app.Listen(":" + PORT)
-	if err != nil {
+
+	if err := app.Listen(":" + PORT); err != nil {
 		log.Fatal(err.Error())
-		return
 	}
 }

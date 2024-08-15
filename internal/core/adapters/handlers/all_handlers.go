@@ -1,21 +1,22 @@
 package handlers
 
 import (
-	"e-commerce/internal/core/adapters/services"
+	"e-commerce/internal/core/adapters/handlers/fiber"
+	"e-commerce/internal/core/domain/services"
 )
 
 type Handlers struct {
-	UserHandler     *UserHandler
-	LoginHandler    *AuthHandler
-	ProductHandler  *ProductHandler
-	CategoryHandler *CategoryHandler
+	UserHandler     *fiber.UserHandler
+	LoginHandler    *fiber.AuthHandler
+	ProductHandler  *fiber.ProductHandler
+	CategoryHandler *fiber.CategoryHandler
 }
 
 func NewHandlers(allServices *services.Services) *Handlers {
 	return &Handlers{
-		UserHandler:     NewUserHandler(allServices.UserService),
-		LoginHandler:    NewAuthHandler(allServices.UserService),
-		ProductHandler:  NewProductHandler(allServices.ProductService),
-		CategoryHandler: NewCategoryHandler(allServices.CategoryService),
+		UserHandler:     fiber.NewUserHandler(allServices.UserService),
+		LoginHandler:    fiber.NewAuthHandler(allServices.UserService),
+		ProductHandler:  fiber.NewProductHandler(allServices.ProductService),
+		CategoryHandler: fiber.NewCategoryHandler(allServices.CategoryService),
 	}
 }

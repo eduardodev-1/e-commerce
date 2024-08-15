@@ -1,10 +1,10 @@
-package handlers
+package fiber
 
 import (
 	"e-commerce/internal/core/domain/models"
 	"e-commerce/internal/core/ports"
 	"e-commerce/internal/httperror"
-	"e-commerce/internal/network/middleware"
+	"e-commerce/internal/infra/middleware"
 	"github.com/gofiber/fiber/v2"
 )
 

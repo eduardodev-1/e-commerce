@@ -1,4 +1,4 @@
-package handlers
+package fiber
 
 import (
 	"e-commerce/internal/auth"
