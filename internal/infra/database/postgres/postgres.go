@@ -3,6 +3,7 @@ package postgres
 import (
 	"e-commerce/internal/core/adapters/repositories"
 	"e-commerce/internal/core/domain/models"
+	"e-commerce/internal/utils"
 	"fmt"
 	"log"
 	"os"
@@ -42,8 +43,8 @@ func NewPsqlConn() *models.DataBase {
 	if err = db.Ping(); err != nil {
 		log.Fatal(err)
 	}
-
-	if err = executeSQLFile("internal/database/postgres/sql/schema.sql", db); err != nil {
+	rootDir := utils.GetCurrentRootDir()
+	if err = executeSQLFile(rootDir+"/internal/infra/database/postgres/sql/schema.sql", db); err != nil {
 		if containsAll(err.Error(), []string{"constraint", "for relation", "already exists"}) {
 			log.Println("Constraint already exists, skipping...")
 		} else {

@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"e-commerce/internal/core/adapters/handlers"
+	"e-commerce/internal/core/handlers"
 	"e-commerce/internal/infra/middleware"
 	"github.com/gofiber/fiber/v2"
 )

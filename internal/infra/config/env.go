@@ -1,7 +1,7 @@
 package config
 
 import (
-	"flag"
+	"e-commerce/internal/utils"
 	"github.com/joho/godotenv"
 	"log"
 	"os"
@@ -15,16 +15,6 @@ func init() {
 		loadFile = true
 	}
 	if loadFile {
-		isImageDocker, err := strconv.ParseBool(os.Getenv("IS_IMAGE_DOCKER"))
-		if err != nil {
-			isImageDocker = false
-		}
-		if isImageDocker {
-			err = os.Setenv("DB_HOST", "host.docker.internal")
-			if err != nil {
-				log.Println("Error setting DB_HOST")
-			}
-		}
 		log.Print("load env = true")
 		loadEnv()
 	} else {
@@ -32,23 +22,33 @@ func init() {
 	}
 }
 func loadEnv() {
-	// Define the environment flag
-	env := flag.String("env", "local", "Environment for the application")
-	flag.Parse()
-
-	log.Printf("Running on %s environment\n", *env)
-
-	// Load selected env
-	currentEnv := path.Join("env", *env+".env")
-	if err := godotenv.Load(currentEnv); err != nil {
-		log.Printf("Erro ao carregar arquivo .env: %v", err)
+	env := os.Getenv("APP_ENV")
+	if env == "" {
+		env = "local"
+	}
+	rootDir := utils.GetCurrentRootDir()
+	log.Print(env)
+	if env == "test" {
+		err := godotenv.Load(".env.test")
+		if err != nil {
+			log.Println(err.Error())
+			return
+		}
 	} else {
-		os.Setenv("APP_ENV", *env)
+		envPath := path.Join(rootDir, "env", "local.env")
+		log.Printf("Caminho do arquivo env: %s", envPath)
+		err := godotenv.Load(envPath)
+		if err != nil {
+			log.Println(err.Error())
+			return
+		}
+	}
+	envPath := path.Join(rootDir, "env", "common.env")
+	log.Printf("Caminho do arquivo env: %s", envPath)
+	err := godotenv.Load(envPath)
+	if err != nil {
+		log.Println(err.Error())
+		return
 	}
 
-	// Load common env
-	commonEnv := path.Join("env", "common.env")
-	if err := godotenv.Load(commonEnv); err != nil {
-		log.Fatalf("Erro ao carregar arquivo .env: %v", err)
-	}
 }

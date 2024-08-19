@@ -2,12 +2,24 @@ package utils
 
 import (
 	"fmt"
+	"log"
+	"os"
 	"strconv"
 	"strings"
 
 	"gopkg.in/encoder.v1"
 	"gopkg.in/encoder.v1/types"
 )
+
+func GetCurrentRootDir() string {
+	currentDir, _ := os.Getwd()
+	index := strings.Index(currentDir, "e-commerce")
+	if index == -1 {
+		log.Fatalf("Diretório 'e-commerce' não encontrado")
+	}
+	rootDir := currentDir[:index+len("e-commerce")]
+	return rootDir
+}
 
 func VerifyEncode(data string, hash string) {
 	// Using the default options
