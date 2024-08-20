@@ -27,7 +27,6 @@ func loadEnv() {
 		env = "local"
 	}
 	rootDir := utils.GetCurrentRootDir()
-	log.Print(env)
 	if env == "test" {
 		err := godotenv.Load(".env.test")
 		if err != nil {
@@ -36,7 +35,6 @@ func loadEnv() {
 		}
 	} else {
 		envPath := path.Join(rootDir, "env", "local.env")
-		log.Printf("Caminho do arquivo env: %s", envPath)
 		err := godotenv.Load(envPath)
 		if err != nil {
 			log.Println(err.Error())
@@ -44,7 +42,6 @@ func loadEnv() {
 		}
 	}
 	envPath := path.Join(rootDir, "env", "common.env")
-	log.Printf("Caminho do arquivo env: %s", envPath)
 	err := godotenv.Load(envPath)
 	if err != nil {
 		log.Println(err.Error())

@@ -59,11 +59,11 @@ func (r *UserRepository) GetAuthenticationData(username string) (user *models.Au
 	u := &result.AuthenticatedUser
 	return u, result.HashedPassword, nil
 }
-func (r *UserRepository) FindPaginatedWithTotalCount(params *models.QueryParams) (*[]models.User, models.TotalCount, *httpError.ErrorParams) {
+func (r *UserRepository) FindPaginatedWithTotalCount(params *models.QueryParams) (*[]models.User, int, *httpError.ErrorParams) {
 	var usersDB []models.UserDB
 	var users []models.User
 	var errorParams = new(httpError.ErrorParams)
-	var total models.TotalCount
+	var total int
 
 	countQuery := `SELECT COUNT(*) FROM tb_user`
 	err := r.Get(&total, countQuery)

@@ -94,7 +94,7 @@ func (h ProductHandler) Update(ctx *fiber.Ctx) error {
 	}
 
 	// Retornar resposta de sucesso
-	return ctx.Status(fiber.StatusCreated).JSON(fiber.Map{
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "product updated successfully",
 		"id":      id,
 	})

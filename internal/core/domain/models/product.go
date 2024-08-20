@@ -6,6 +6,6 @@ type Product struct {
 	Description string  `db:"description" json:"description,omitempty"`
 	ImgURL      string  `db:"img_url" json:"img_url,omitempty"`
 	Price       float64 `db:"price" json:"price,omitempty"`
-	SellerId    int64   `db:"seller" json:"seller_id,omitempty"`
+	SellerID    int64   `db:"seller" json:"seller_id,omitempty"`
 	Quantity    int     `db:"quantity" json:"quantity,omitempty"`
 }

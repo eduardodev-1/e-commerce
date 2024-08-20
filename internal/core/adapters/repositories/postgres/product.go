@@ -19,11 +19,11 @@ func NewProductRepository(db *sqlx.DB) *ProductRepository {
 		db,
 	}
 }
-func (r *ProductRepository) FindPaginatedWithTotalCount(params *models.QueryParams) (*[]models.Product, models.TotalCount, *fiber_error.ErrorParams) {
+func (r *ProductRepository) FindPaginatedWithTotalCount(params *models.QueryParams) (*[]models.Product, int, *fiber_error.ErrorParams) {
 
 	var products = new([]models.Product)
 	var errorParams = new(fiber_error.ErrorParams)
-	var total models.TotalCount
+	var total int
 
 	countQuery := `SELECT COUNT(*) FROM tb_product`
 	err := r.Get(&total, countQuery)
@@ -62,7 +62,7 @@ func (r *ProductRepository) Insert(product *models.Product, username string, isA
 	var errorParams = new(fiber_error.ErrorParams)
 	if !isAdmin {
 		getSellerIdQuery := `SELECT id FROM tb_user WHERE login_username = $1`
-		err := r.Get(&product.SellerId, getSellerIdQuery, username)
+		err := r.Get(&product.SellerID, getSellerIdQuery, username)
 		if err != nil {
 			errorParams.SetDefaultParams(err)
 			return 0, errorParams
@@ -71,7 +71,7 @@ func (r *ProductRepository) Insert(product *models.Product, username string, isA
 	query := `INSERT INTO tb_product (price, description, img_url, name, seller, quantity)
 	VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`
 	var id int
-	err := r.QueryRow(query, product.Price, product.Description, product.ImgURL, product.Name, product.SellerId, product.Quantity).Scan(&id)
+	err := r.QueryRow(query, product.Price, product.Description, product.ImgURL, product.Name, product.SellerID, product.Quantity).Scan(&id)
 	if err != nil {
 		errorParams.SetDefaultParams(err)
 		return id, errorParams
@@ -86,7 +86,7 @@ func (r *ProductRepository) Update(product *models.Product, username string, isA
 	var rowsAffected int64
 	if !isAdmin {
 		getSellerIdQuery := `SELECT id FROM tb_user WHERE login_username = $1`
-		err = r.Get(&product.SellerId, getSellerIdQuery, username)
+		err = r.Get(&product.SellerID, getSellerIdQuery, username)
 		if err != nil {
 			errorParams.SetDefaultParams(err)
 			return errorParams
@@ -96,7 +96,7 @@ func (r *ProductRepository) Update(product *models.Product, username string, isA
 		SET price = $1, description = $2, img_url = $3, name = $4, quantity = $5
 		WHERE id = $6 AND seller = $7`
 
-		result, err = r.Exec(updateQuery, product.Price, product.Description, product.ImgURL, product.Name, product.Quantity, product.ID, product.SellerId)
+		result, err = r.Exec(updateQuery, product.Price, product.Description, product.ImgURL, product.Name, product.Quantity, product.ID, product.SellerID)
 		if err != nil {
 			errorParams.SetDefaultParams(err)
 			return errorParams
@@ -106,7 +106,7 @@ func (r *ProductRepository) Update(product *models.Product, username string, isA
 		UPDATE tb_product
 		SET price = $1, description = $2, img_url = $3, name = $4, quantity = $5, seller= $6
 		WHERE id = $7`
-		result, err = r.Exec(updateQuery, product.Price, product.Description, product.ImgURL, product.Name, product.Quantity, product.SellerId, product.ID)
+		result, err = r.Exec(updateQuery, product.Price, product.Description, product.ImgURL, product.Name, product.Quantity, product.SellerID, product.ID)
 	}
 	if err != nil {
 		errorParams.SetDefaultParams(err)
@@ -125,16 +125,17 @@ func (r *ProductRepository) Update(product *models.Product, username string, isA
 }
 func (r *ProductRepository) Delete(id int, username string, isAdmin bool) *fiber_error.ErrorParams {
 	var errorParams = new(fiber_error.ErrorParams)
-	var sellerID int
-	idQuery := `SELECT id FROM tb_user WHERE login_username = $1`
-	err := r.Get(&sellerID, idQuery, username)
-	if err != nil {
-		errorParams.SetDefaultParams(err)
-		return errorParams
-	}
 	var deleteQuery string
 	var result sql.Result
+	var err error
 	if !isAdmin {
+		var sellerID int
+		idQuery := `SELECT id FROM tb_user WHERE login_username = $1`
+		err = r.Get(&sellerID, idQuery, username)
+		if err != nil {
+			errorParams.SetDefaultParams(err)
+			return errorParams
+		}
 		deleteQuery = `
 		DELETE FROM tb_product
 		WHERE id = $1 AND seller = $2`
@@ -156,7 +157,7 @@ func (r *ProductRepository) Delete(id int, username string, isAdmin bool) *fiber
 		return errorParams
 	}
 	if rowsAffected == 0 {
-		errorParams.SetDefaultParams(errors.New("nenhum produto encontrado para este vendedor com este ID"))
+		errorParams.SetCustomError(fiber.StatusNotFound, "nenhum produto encontrado para este vendedor com este ID")
 		return errorParams
 	}
 

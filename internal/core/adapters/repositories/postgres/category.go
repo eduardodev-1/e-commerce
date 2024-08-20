@@ -19,11 +19,11 @@ func NewCategoryRepository(db *sqlx.DB) *CategoryRepository {
 		db,
 	}
 }
-func (r *CategoryRepository) FindPaginatedWithTotalCount(params *models.QueryParams) (*[]models.Category, models.TotalCount, *fiber_error.ErrorParams) {
+func (r *CategoryRepository) FindPaginatedWithTotalCount(params *models.QueryParams) (*[]models.Category, int, *fiber_error.ErrorParams) {
 
 	var products = new([]models.Category)
 	var errorParams = new(fiber_error.ErrorParams)
-	var total models.TotalCount
+	var total int
 
 	countQuery := `SELECT COUNT(*) FROM tb_category`
 	err := r.Get(&total, countQuery)

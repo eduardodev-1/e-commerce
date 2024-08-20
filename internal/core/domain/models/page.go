@@ -6,7 +6,7 @@ import (
 
 type Page struct {
 	Content       interface{} `json:"content"`
-	TotalElements TotalCount  `json:"totalElements"`
+	TotalElements int         `json:"totalElements"`
 	TotalPages    int         `json:"totalPages"`
 	Size          int         `json:"size"`
 	Number        int         `json:"number"`
@@ -22,7 +22,6 @@ type QueryParams struct {
 	Offset int
 	Order  string
 }
-type TotalCount int
 
 func (p *Page) SetRequestParamsAndGetQueryParams(params *RequestParams) *QueryParams {
 	p.SetRequestParams(params)
@@ -40,7 +39,7 @@ func (p *Page) GetQueryParams() *QueryParams {
 		Order:  p.Sort,
 	}
 }
-func (p *Page) SetResultParams(content interface{}, count TotalCount) {
+func (p *Page) SetResultParams(content interface{}, count int) {
 	p.Content = content
 	p.TotalElements = count
 	p.TotalPages = int(math.Ceil(float64(p.TotalElements) / float64(p.Size)))
