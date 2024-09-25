@@ -50,4 +50,6 @@ func Private(app *fiber.App, allHandlers *handlers.Handlers) {
 		categories.Put("/:id", middleware.AuthorizationMiddleware("ROLE_ADMIN"), allHandlers.CategoryHandler.Update)
 		categories.Delete("/:id", middleware.AuthorizationMiddleware("ROLE_ADMIN"), allHandlers.CategoryHandler.Delete)
 	}
+	//orders
+	//payment
 }
