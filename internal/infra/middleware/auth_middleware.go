@@ -8,7 +8,7 @@ import (
 	_ "github.com/golang-jwt/jwt"
 )
 
-func AuthMiddleware(ctx *fiber.Ctx) error {
+func IsAuthenticatedMiddleware(ctx *fiber.Ctx) error {
 	headerAuth := strings.SplitAfter(ctx.Get("Authorization"), "Bearer ")
 	var tokenString = ""
 	if len(headerAuth) == 2 {
@@ -30,15 +30,21 @@ func AuthMiddleware(ctx *fiber.Ctx) error {
 			"error": "invalid token",
 		})
 	}
-	username, authorities, err := auth.ValidateAndExtractTokenData(token)
+	username, authorities, userId, err := auth.ValidateAndExtractTokenData(token)
 	if err != nil {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
-	auth.ValidateRouteAuthority(username, authorities, ctx.Route())
+	err = auth.ValidateRouteAuthority(username, authorities, ctx.Route(), ctx.Path())
+	if err != nil {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
 	// Token is valid, add user information to context
 	ctx.Locals("username", username)
 	ctx.Locals("authorities", authorities)
+	ctx.Locals("userId", userId)
 	return ctx.Next()
 }

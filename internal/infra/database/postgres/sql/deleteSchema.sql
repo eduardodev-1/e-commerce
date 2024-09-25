@@ -1,0 +1,9 @@
+DROP TABLE if exists tb_product_category CASCADE;
+DROP TABLE if exists tb_order_item CASCADE;
+DROP TABLE if exists tb_category CASCADE;
+DROP TABLE if exists tb_product CASCADE;
+DROP TABLE if exists tb_order CASCADE;
+DROP TABLE if exists tb_payment CASCADE;
+DROP TABLE if exists tb_user_role CASCADE;
+DROP TABLE if exists tb_role CASCADE;
+DROP TABLE if exists tb_user CASCADE;

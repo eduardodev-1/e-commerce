@@ -10,7 +10,7 @@ import (
 )
 
 type customClaim struct {
-	UserName    string   `json:"username"`
+	Username    string   `json:"username"`
 	Authorities []string `json:"authorities"`
 	jtoken.RegisteredClaims
 }
@@ -22,7 +22,7 @@ const (
 func NewJWToken(userId int, username string, authorities []string) (string, error) {
 	// Create claims with multiple fields populated
 	claims := customClaim{
-		UserName:    username,
+		Username:    username,
 		Authorities: authorities,
 		RegisteredClaims: jtoken.RegisteredClaims{
 			ExpiresAt: jtoken.NewNumericDate(time.Now().Add(duration)),
@@ -58,15 +58,14 @@ func ParseToken(tokenString string) (*jtoken.Token, error) {
 	return token, nil
 }
 
-func ValidateAndExtractTokenData(token *jtoken.Token) (string, []string, error) {
-	var username string
-	var authorities []string
+func ValidateAndExtractTokenData(token *jtoken.Token) (username string, authorities []string, userId string, err error) {
 	if claims, ok := token.Claims.(*customClaim); !ok {
-		return "", nil, errors.New("unknown claims type")
+		return "", nil, "", errors.New("unknown claims type")
 	} else {
-		username = claims.UserName
+		username = claims.Username
 		authorities = claims.Authorities
+		userId = claims.ID
 	}
 
-	return username, authorities, nil
+	return username, authorities, userId, nil
 }
